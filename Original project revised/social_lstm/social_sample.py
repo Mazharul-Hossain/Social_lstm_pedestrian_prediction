@@ -1,14 +1,18 @@
+import argparse
+import os
+import pickle
+
 import numpy as np
 import tensorflow as tf
 
-import os
-import pickle
-import argparse
+from grid import getSequenceGridMask
+from social_model import SocialModel
+from social_utils import SocialDataLoader
+
+
 # import ipdb
 
-from social_utils import SocialDataLoader
-from social_model import SocialModel
-from grid import getSequenceGridMask
+
 # from social_train import getSocialGrid, getSocialTensor
 
 
@@ -58,7 +62,6 @@ def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
 
 
 def main():
-
     # Set random seed
     np.random.seed(1)
 
@@ -76,7 +79,6 @@ def main():
     # Model to be loaded
     parser.add_argument('--epoch', type=int, default=0,
                         help='Epoch of model to be loaded')
-    
 
     # Parse the parameters
     sample_args = parser.parse_args()
@@ -91,15 +93,15 @@ def main():
     # Create a SocialModel object with the saved_args and infer set to true
     model = SocialModel(saved_args, True)
     # Initialize a TensorFlow session
-    config=tf.ConfigProto(log_device_placement=True) # Showing which device is allocated (in case of multiple GPUs)
-    config.gpu_options.per_process_gpu_memory_fraction = 0.4 # Allocating 20% of memory in each GPU
+    config = tf.ConfigProto(log_device_placement=True)  # Showing which device is allocated (in case of multiple GPUs)
+    config.gpu_options.per_process_gpu_memory_fraction = 0.4  # Allocating 20% of memory in each GPU
     sess = tf.InteractiveSession(config=config)
     # Initialize a saver
     saver = tf.train.Saver()
 
     # Get the checkpoint state for the model
     ckpt = tf.train.get_checkpoint_state(save_directory)
-    #print ('loading model: ', ckpt.model_checkpoint_path)
+    # print ('loading model: ', ckpt.model_checkpoint_path)
     print('loading model: ', ckpt.all_model_checkpoint_paths[sample_args.epoch])
 
     # Restore the model at the checkpoint
@@ -109,7 +111,8 @@ def main():
     dataset = [sample_args.test_dataset]
 
     # Create a SocialDataLoader object with batch_size 1 and seq_length equal to observed_length + pred_length
-    data_loader = SocialDataLoader(1, sample_args.pred_length + sample_args.obs_length, saved_args.maxNumPeds, dataset, True, infer=True)
+    data_loader = SocialDataLoader(1, sample_args.pred_length + sample_args.obs_length, saved_args.maxNumPeds, dataset,
+                                   True, infer=True)
 
     # Reset all pointers of the data_loader
     data_loader.reset_batch_pointer()
@@ -140,25 +143,26 @@ def main():
 
         print('loaded model: ', ckpt.all_model_checkpoint_paths[sample_args.epoch])
 
-        print "********************** SAMPLING A NEW TRAJECTORY", b, "******************************"
+        print("********************** SAMPLING A NEW TRAJECTORY", b, "******************************")
         complete_traj = model.sample(sess, obs_traj, obs_grid, dimensions, x_batch, sample_args.pred_length)
 
         # ipdb.set_trace()
         # complete_traj is an array of shape (obs_length+pred_length) x maxNumPeds x 3
         total_error += get_mean_error(complete_traj, x[0], sample_args.obs_length, saved_args.maxNumPeds)
 
-        print "Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories"
+        print("Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories")
 
         # plot_trajectories(x[0], complete_traj, sample_args.obs_length)
         # return
         results.append((x[0], complete_traj, sample_args.obs_length))
 
     # Print the mean error across all the batches
-    print "Total mean error of the model is ", total_error/data_loader.num_batches
+    print("Total mean error of the model is ", total_error / data_loader.num_batches)
 
-    print "Saving results"
+    print("Saving results")
     with open(os.path.join(save_directory, 'social_results.pkl'), 'wb') as f:
         pickle.dump(results, f)
+
 
 if __name__ == '__main__':
     main()

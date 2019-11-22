@@ -8,9 +8,10 @@ Date : 17th October 2016
 
 import os
 import pickle
-import numpy as np
-import ipdb
 import random
+
+import numpy as np
+
 
 # The data loader class that loads data from the datasets considering
 # each frame as a datapoint and a sequence of consecutive frames as the
@@ -192,8 +193,8 @@ class SocialDataLoader():
             # get the frame data for the current dataset
             all_frame_data = self.data[dataset]
             valid_frame_data = self.valid_data[dataset]
-            print 'Training data from dataset', dataset, ':', len(all_frame_data)
-            print 'Validation data from dataset', dataset, ':', len(valid_frame_data)
+            print('Training data from dataset', dataset, ':', len(all_frame_data))
+            print('Validation data from dataset', dataset, ':', len(valid_frame_data))
             # Increment the counter with the number of sequences in the current dataset
             counter += int(len(all_frame_data) / (self.seq_length+2))
             valid_counter += int(len(valid_frame_data) / (self.seq_length+2))
@@ -361,7 +362,7 @@ class SocialDataLoader():
             self.valid_frame_pointer = 0
             # If all datasets are done, then go to the first one again
             if self.valid_dataset_pointer >= len(self.valid_data):
-                self.valid_dataset_pointer = 0    
+                self.valid_dataset_pointer = 0
 
     def reset_batch_pointer(self, valid=False):
         '''

@@ -6,11 +6,11 @@ Author : Anirudh Vemula
 Date: 17th October 2016
 '''
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from tensorflow.python.ops import rnn_cell
+
 from grid import getSequenceGridMask
-import pdb
 
 
 class SocialModel():
@@ -112,7 +112,7 @@ class SocialModel():
 
         # Iterate over each frame in the sequence
         for seq, frame in enumerate(frame_data):
-            print "Frame number", seq
+            print("Frame number", seq)
 
             current_frame_data = frame  # MNP x 3 tensor
             current_grid_frame_data = grid_frame_data[seq]  # MNP x MNP x (GS**2) tensor
@@ -121,7 +121,7 @@ class SocialModel():
             # social_tensor = tf.zeros([args.maxNumPeds, args.grid_size*args.grid_size*args.rnn_size])
 
             for ped in range(args.maxNumPeds):
-                print "Pedestrian Number", ped
+                print("Pedestrian Number", ped)
 
                 # pedID of the current pedestrian
                 pedID = current_frame_data[ped, 0]

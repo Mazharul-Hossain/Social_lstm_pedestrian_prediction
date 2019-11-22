@@ -5,15 +5,15 @@ Author : Anirudh Vemula
 Date : 17th November 2016
 '''
 
+import argparse
+import os
+import pickle
+
 import numpy as np
 import tensorflow as tf
 
-import os
-import pickle
-import argparse
-
-from social_model import SocialModel
 from grid import getSequenceGridMask
+from social_model import SocialModel
 
 
 def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
@@ -62,7 +62,6 @@ def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     # Observed length of the trajectory parameter
     parser.add_argument('--obs_length', type=int, default=4,
@@ -89,7 +88,7 @@ def main():
 
     # Get the checkpoint state for the model
     ckpt = tf.train.get_checkpoint_state('save')
-    print ('loading model: ', ckpt.model_checkpoint_path)
+    print('loading model: ', ckpt.model_checkpoint_path)
 
     # Restore the model at the checkpoint
     saver.restore(sess, ckpt.model_checkpoint_path)
@@ -97,10 +96,10 @@ def main():
     results = []
 
     # Load the data
-    file_path = os.path.join('matlab', 'csv', sample_args.scenario+'.csv')
+    file_path = os.path.join('matlab', 'csv', sample_args.scenario + '.csv')
     data = np.genfromtxt(file_path, delimiter=',')
     # Reshape data
-    x_batch = np.reshape(data, [sample_args.obs_length+sample_args.pred_length, saved_args.maxNumPeds, 3])
+    x_batch = np.reshape(data, [sample_args.obs_length + sample_args.pred_length, saved_args.maxNumPeds, 3])
 
     dimensions = [720, 576]
     grid_batch = getSequenceGridMask(x_batch, [720, 576], saved_args.neighborhood_size, saved_args.grid_size)
@@ -108,12 +107,12 @@ def main():
     obs_traj = x_batch[:sample_args.obs_length]
     obs_grid = grid_batch[:sample_args.obs_length]
 
-
     complete_traj = model.sample(sess, obs_traj, obs_grid, dimensions, x_batch, sample_args.pred_length)
 
     total_error = get_mean_error(complete_traj, x_batch, sample_args.obs_length, saved_args.maxNumPeds)
 
-    print "Mean error of the model on this scenario is", total_error
+    print("Mean error of the model on this scenario is", total_error)
+
 
 if __name__ == '__main__':
     main()

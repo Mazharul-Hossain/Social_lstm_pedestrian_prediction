@@ -8,9 +8,9 @@ Date : 17th October 2016
 
 import os
 import pickle
-import numpy as np
-import ipdb
 import random
+
+import numpy as np
 
 
 # The data loader class that loads data from the datasets considering
@@ -217,8 +217,8 @@ class SocialDataLoader():
             # get the frame data for the current dataset
             all_frame_data = self.data[dataset]
             valid_frame_data = self.valid_data[dataset]
-            print('Training data from dataset', dataset, ':', len(all_frame_data))
-            print('Validation data from dataset', dataset, ':', len(valid_frame_data))
+            # print('Training data from dataset', dataset, ':', len(all_frame_data))
+            # print('Validation data from dataset', dataset, ':', len(valid_frame_data))
             # Increment the counter with the number of sequences in the current dataset
             counter += int(len(all_frame_data) / (self.input_seq_length + 2)) - 1
             valid_counter += int(len(valid_frame_data) / (self.input_seq_length + 2)) - 1
@@ -280,7 +280,7 @@ class SocialDataLoader():
                             continue
                         else:
                             sped = sseq_frame_data[sseq_frame_data[:, 0] == pedID, :]
-                            print("\n\nseq#", seq, " ped# ", ped, "\n\tsped#{}: {}".format(sped.size, sped))
+                            # print("\n\nseq#", seq, " ped# ", ped, "\n\tsped#{}: {}".format(sped.size, sped))
                             if sped.size != 0:
                                 sourceData[seq, ped, :] = sped
 
@@ -299,11 +299,11 @@ class SocialDataLoader():
                             continue
                         else:
                             tped = np.squeeze(tseq_frame_data[tseq_frame_data[:, 0] == pedID, :])
-                            print("\n\ttped#{}: {}".format(tped.size, tped))
+                            # print("\n\ttped#{}: {}".format(tped.size, tped))
                             if tped.size != 0:
                                 targetData[seq, ped, :] = tped
-                print("sourceData#{}: {}".format(sourceData.shape, sourceData),
-                      "\ntargetData#{}: {}".format(targetData.shape, targetData))
+                # print("sourceData#{}: {}".format(sourceData.shape, sourceData),
+                #       "\ntargetData#{}: {}".format(targetData.shape, targetData))
 
                 x_batch.append(sourceData)
                 y_batch.append(targetData)

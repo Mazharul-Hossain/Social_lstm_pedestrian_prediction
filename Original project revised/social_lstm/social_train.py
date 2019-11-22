@@ -1,13 +1,13 @@
-import tensorflow as tf
 import argparse
 import os
-import time
 import pickle
-import ipdb
+import time
 
+import tensorflow as tf
+
+from grid import getSequenceGridMask
 from social_model import SocialModel
 from social_utils import SocialDataLoader
-from grid import getSequenceGridMask
 
 
 def main():
@@ -111,7 +111,7 @@ def train(args):
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
 
         # summary_writer = tf.train.SummaryWriter('/tmp/lstm/logs', graph_def=sess.graph_def)
-        print 'Training begin'
+        print('Training begin')
         best_val_loss = 100
         best_epoch = 0
 
@@ -179,7 +179,7 @@ def train(args):
                 '''
             loss_epoch /= data_loader.num_batches
             log_file_curve.write(str(e)+','+str(loss_epoch)+',')
-            print '*****************'
+            print('*****************')
 
             # Validation
             data_loader.reset_batch_pointer(valid=True)
@@ -228,17 +228,17 @@ def train(args):
                 best_epoch = e
 
             print('(epoch {}), valid_loss = {:.3f}'.format(e, loss_epoch))
-            print 'Best epoch', best_epoch, 'Best validation loss', best_val_loss
+            print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
             log_file_curve.write(str(loss_epoch)+'\n')
-            print '*****************'
+            print('*****************')
 
             # Save the model after each epoch
-            print 'Saving model'
+            print('Saving model')
             checkpoint_path = os.path.join(save_directory, 'social_model.ckpt')
             saver.save(sess, checkpoint_path, global_step=e)
             print("model saved to {}".format(checkpoint_path))
 
-        print 'Best epoch', best_epoch, 'Best validation loss', best_val_loss
+        print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
         log_file.write(str(best_epoch)+','+str(best_val_loss))
 
         # CLose logging files

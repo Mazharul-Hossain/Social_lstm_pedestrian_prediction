@@ -5,9 +5,10 @@ Author : Anirudh Vemula
 Date : 10th November 2016
 '''
 
-import numpy as np
-import matplotlib.pyplot as plt
 import pickle
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
@@ -67,10 +68,10 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
         true_traj_ped = traj_data[j][0]  # List of [x,y] elements
         pred_traj_ped = traj_data[j][1]
 
-        true_x = [(p[0]+1)/2 for p in true_traj_ped]
-        true_y = [(p[1]+1)/2 for p in true_traj_ped]
-        pred_x = [(p[0]+1)/2 for p in pred_traj_ped]
-        pred_y = [(p[1]+1)/2 for p in pred_traj_ped]
+        true_x = [(p[0] + 1) / 2 for p in true_traj_ped]
+        true_y = [(p[1] + 1) / 2 for p in true_traj_ped]
+        pred_x = [(p[0] + 1) / 2 for p in pred_traj_ped]
+        pred_y = [(p[1] + 1) / 2 for p in pred_traj_ped]
 
         plt.plot(true_x, true_y, color='g', linestyle='solid', marker='o')
         plt.plot(pred_x, pred_y, color='b', linestyle='dashed', marker='x')
@@ -78,7 +79,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
     # plt.ylim((0, 1))
     # plt.xlim((0, 1))
     plt.show()
-    #plt.savefig('plot/plot.png') # was plt.savefig('plot/'+name+'.png')
+    # plt.savefig('plot/plot.png') # was plt.savefig('plot/'+name+'.png')
     plt.gcf().clear()
     plt.close()
 
@@ -87,14 +88,13 @@ def main():
     '''
     Main function
     '''
-    f = open('save/3/social_results.pkl', 'rb') #was f = open('save/social_results.pkl', 'rb')
+    f = open('save/3/social_results.pkl', 'rb')  # was f = open('save/social_results.pkl', 'rb')
     results = pickle.load(f)
 
     for i in range(len(results)):
-        print i
+        print(i)
         name = 'sequence' + str(i)
         plot_trajectories(results[i][0], results[i][1], results[i][2], name)
-
 
 
 if __name__ == '__main__':

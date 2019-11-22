@@ -6,10 +6,9 @@ Author : Anirudh Vemula
 Date: 10th October 2016
 """
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from tensorflow.nn import rnn_cell
-import ipdb
 
 
 # The Vanilla LSTM model
@@ -81,6 +80,7 @@ class Model:
         with tf.variable_scope("LSTM_states"):
             self.LSTM_states = tf.zeros([args.maxNumPeds, cell.state_size], name="LSTM_states")
             self.initial_states = tf.split(self.LSTM_states, args.maxNumPeds, 0)
+            # https://stackoverflow.com/a/41384913/2049763
 
         # Define hidden output states for each pedestrian
         with tf.variable_scope("Hidden_states"):
@@ -236,8 +236,7 @@ class Model:
         # Calculate sx*sy
         sxsy = tf.multiply(sx, sy)
 
-        # Calculate the exponential factor Nella versione di tf<1.0 era : z = tf.square(tf.div(normx,
-        # sx)) + tf.square(tf.div(normy, sy)) - 2*tf.div(tf.mul(rho, tf.mul(normx, normy)), sxsy)
+        # Calculate the exponential factor
         z = tf.square(tf.div(normx, sx)) + tf.square(tf.div(normy, sy)) - 2 * tf.div(
             tf.multiply(rho, tf.multiply(normx, normy)), sxsy)
         negRho = 1 - tf.square(rho)
@@ -249,12 +248,8 @@ class Model:
 
         # Final PDF calculation
         result = tf.div(result, denom)
-        self.result = result
         return result
 
-    # Important difference between loss func of Social LSTM and Graves (2013)
-    # is that it is evaluated over all time steps in the latter whereas it is
-    # done from t_obs+1 to t_pred in the former
     def get_lossfunc(self, z_mux, z_muy, z_sx, z_sy, z_corr, x_data, y_data):
         """
         Function to calculate given a 2D distribution over x and y, and target data
@@ -272,32 +267,18 @@ class Model:
 
         # Calculate the PDF of the data w.r.t to the distribution
         result0 = self.tf_2d_normal(x_data, y_data, z_mux, z_muy, z_sx, z_sy, z_corr)
-        # result0_2 = tf_2d_normal(tf.add(x_data, step), y_data, z_mux, z_muy, z_sx, z_sy, z_corr)
-        # result0_3 = tf_2d_normal(x_data, tf.add(y_data, step), z_mux, z_muy, z_sx, z_sy, z_corr)
-        # result0_4 = tf_2d_normal(tf.add(x_data, step), tf.add(y_data, step), z_mux, z_muy, z_sx, z_sy, z_corr)
-
-        # result0 = tf.div(tf.add(tf.add(tf.add(result0_1, result0_2), result0_3), result0_4), tf.constant(4.0,
-        # dtype=tf.float32, shape=(1, 1))) result0 = tf.mul(tf.mul(result0, step), step)
 
         # For numerical stability purposes
         epsilon = 1e-20
 
-        # TODO: (resolve) I don't think we need this as we don't have the inner
-        # summation
-        # result1 = tf.reduce_sum(result0, 1, keep_dims=True)
         # Apply the log operation
         result1 = -tf.log(tf.maximum(result0, epsilon))  # Numerical stability
 
-        # TODO: For now, implementing loss func over all time-steps
         # Sum up all log probabilities for each data point
         return tf.reduce_sum(result1)
 
     def get_coef(self, output):
         # eq 20 -> 22 of Graves (2013)
-        # TODO : (resolve) Does Social LSTM paper do this as well?
-        # the paper says otherwise but this is essential as we cannot
-        # have negative standard deviation and correlation needs to be between
-        # -1 and 1
 
         z = output
         # Split the output into 5 parts corresponding to means, std devs and corr
@@ -329,7 +310,7 @@ class Model:
         x = np.random.multivariate_normal(mean, cov, 1)
 
         # Modification of SIMONE not to use a random number to decide the future position of the pedestrian:
-        return mux, muy  # era return x[0][0], x[0][1]
+        return mux, muy  # was return x[0][0], x[0][1]
 
     def sample(self, sess, traj, grid, true_traj, num=10):
         # traj is a sequence of frames (of length obs_length)
