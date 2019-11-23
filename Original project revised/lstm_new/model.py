@@ -315,17 +315,14 @@ class Model:
     def sample(self, sess, traj, grid, true_traj, num=10):
         # traj is a sequence of frames (of length obs_length)
         # so traj shape is (obs_length x maxNumPeds x 3)
-        # grid is a tensor of shape obs_length x maxNumPeds x maxNumPeds x (gs**2)
         states = sess.run(self.LSTM_states)
         # print "Fitting"
         # For each frame in the sequence
         for index, frame in enumerate(traj[:-1]):
             data = np.reshape(frame, (1, self.args.maxNumPeds, 3))
             target_data = np.reshape(traj[index + 1], (1, self.args.maxNumPeds, 3))
-            grid_data = np.reshape(grid[index, :],
-                                   (1, self.args.maxNumPeds, self.args.maxNumPeds, self.grid_size * self.grid_size))
 
-            feed = {self.input_data: data, self.LSTM_states: states, self.grid_data: grid_data,
+            feed = {self.input_data: data, self.LSTM_states: states,
                     self.target_data: target_data}
 
             [states, cost] = sess.run([self.final_states, self.cost], feed)
@@ -336,14 +333,12 @@ class Model:
         last_frame = traj[-1]
 
         prev_data = np.reshape(last_frame, (1, self.args.maxNumPeds, 3))
-        prev_grid_data = np.reshape(grid[-1],
-                                    (1, self.args.maxNumPeds, self.args.maxNumPeds, self.grid_size * self.grid_size))
 
         prev_target_data = np.reshape(true_traj[traj.shape[0]], (1, self.args.maxNumPeds, 3))
         # Prediction
         for t in range(num):
             # print "**** NEW PREDICTION TIME STEP", t, "****"
-            feed = {self.input_data: prev_data, self.LSTM_states: states, self.grid_data: prev_grid_data,
+            feed = {self.input_data: prev_data, self.LSTM_states: states,
                     self.target_data: prev_target_data}
             [output, states, cost] = sess.run([self.final_output, self.final_states, self.cost], feed)
             # print "Cost", cost Output is a list of lists where the inner lists contain matrices of shape 1x5. The

@@ -36,6 +36,7 @@ cd "Original project revised/lstm/" || exit
 
 python train.py
 python sample.py
+echo "-----------------------------------------------------"
 
 #################################################
 # New LSTM                                      #
@@ -44,6 +45,7 @@ echo "Running New LSTM: $(date +"%r")"
 cd "../lstm_new/" || exit
 
 python main.py -test -viz --obs_length=12 --pred_length=8
+echo "-----------------------------------------------------"
 
 #################################################
 # Social LSTM                                          #
@@ -53,6 +55,7 @@ cd "../social_lstm/" || exit
 
 python social_train.py
 python social_sample.py
+echo "-----------------------------------------------------"
 
 #################################################
 conda deactivate
