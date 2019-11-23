@@ -1,5 +1,5 @@
 # conda activate tensorflow_gpuenv
-# cd D:\UofMemphis\Coding\notebooks\Social_lstm_pedestrian_prediction\Original project revised\lstm_new
+# cd "D:\UofMemphis\Coding\notebooks\Social_lstm_pedestrian_prediction\Original project revised\lstm_new"
 # D:
 # to train just run:
 # $ python main.py
@@ -12,14 +12,6 @@
 # (https://danijar.com/introduction-to-recurrent-networks-in-tensorflow/)
 # [TensorBoard Tutorial](https://www.datacamp.com/community/tutorials/tensorboard-tutorial)
 # https://www.easy-tensorflow.com/tf-tutorials/basics/introduction-to-tensorboard
-
-# cd /home/mazhar/workplace/Social_lstm_pedestrian_prediction/
-# git reset --hard
-# env GIT_SSL_NO_VERIFY=true git pull
-# screen -S inference
-# cd
-# python main.py |& tee -a log/output_inference.txt
-# ctrl-a d
 
 import argparse
 import os
@@ -47,15 +39,15 @@ def main(args):
     parser.add_argument('--model', type=str, default='lstm',
                         help='rnn, gru, or lstm')
     # Size of each batch parameter
-    parser.add_argument('--batch_size', type=int, default=50,
+    parser.add_argument('--batch_size', type=int, default=16,
                         help='minibatch size')
 
     # Length of sequence to be considered parameter
     # Observed length of the trajectory parameter
-    parser.add_argument('--obs_length', type=int, default=6,
+    parser.add_argument('--obs_length', type=int, default=20,
                         help='Observed length of the trajectory')
     # Predicted length of the trajectory parameter
-    parser.add_argument('--pred_length', type=int, default=6,
+    parser.add_argument('--pred_length', type=int, default=1,
                         help='Predicted length of the trajectory')
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
@@ -78,8 +70,8 @@ def main(args):
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
                         help='dropout keep probability')
-    # Dimension of the embeddings parameter; same as rnn_size
-    parser.add_argument('--embedding_size', type=int, default=128,
+    # Dimension of the embeddings parameter; same as rnn_size, here rnn_size/2
+    parser.add_argument('--embedding_size', type=int, default=64,
                         help='Embedding dimension for the spatial coordinates')
 
     # The dataset index to be left out in training; The test dataset
@@ -100,6 +92,7 @@ def main(args):
                         help='Visualize testing result')
     args = parser.parse_args()
 
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')
     if args.test:
         sample.sample(args)
     else:
@@ -115,8 +108,6 @@ def train(args):
     # batches each of size args.batch_size, of length args.seq_length
     data_loader = DataLoader(args.batch_size, args.obs_length, args.obs_length,
                              maxNumPeds=args.maxNumPeds, datasets=datasets, forcePreProcess=True)
-
-    args.train_logs = os.path.join('..', 'train_logs', 'lstm')
 
     import pathlib
     # https://stackoverflow.com/a/41146954/2049763
@@ -298,6 +289,7 @@ def train(args):
         log_file_curve.close()
         writer.close()
 
+    print("Testing is starting !")
     sample.sample(args)
 
 

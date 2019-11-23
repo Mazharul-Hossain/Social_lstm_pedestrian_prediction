@@ -1,12 +1,12 @@
-import numpy as np
-import tensorflow as tf
-
 import os
 import pickle
 
+import numpy as np
+import tensorflow as tf
+
 import social_visualize
-from social_utils import SocialDataLoader
 from model import Model
+from social_utils import SocialDataLoader
 
 
 def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
@@ -59,6 +59,9 @@ def sample(args):
     save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
     with open(os.path.join(save_location, 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
+
+    # https://stackoverflow.com/a/47087740/2049763
+    tf.reset_default_graph()
 
     # Create a SocialModel object with the saved_args and infer set to true
     model = Model(saved_args, True)

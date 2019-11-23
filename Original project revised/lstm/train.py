@@ -1,9 +1,9 @@
-import numpy as np
-import tensorflow as tf
 import argparse
 import os
-import time
 import pickle
+import time
+
+import tensorflow as tf
 
 from model import Model
 from utils import DataLoader
@@ -61,13 +61,17 @@ def main():
 
 
 def train(args):
-    datasets = range(4)
+    datasets = list(range(4))
     # Remove the leaveDataset from datasets
     datasets.remove(args.leaveDataset)
 
     # Create the data loader object. This object would preprocess the data in terms of
     # batches each of size args.batch_size, of length args.seq_length
     data_loader = DataLoader(args.batch_size, args.seq_length, datasets, forcePreProcess=True)
+
+    import pathlib
+    path = pathlib.Path("save_lstm")
+    path.mkdir(parents=True, exist_ok=True)
 
     # Save the arguments int the config file
     with open(os.path.join('save_lstm', 'config.pkl'), 'wb') as f:

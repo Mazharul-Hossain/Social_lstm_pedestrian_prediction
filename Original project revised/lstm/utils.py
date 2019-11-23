@@ -1,13 +1,14 @@
 import os
 import pickle
-import numpy as np
 import random
+
+import numpy as np
 
 
 # TODO : (improve) Add functionality to retrieve data only from specific datasets
 class DataLoader():
 
-    def __init__(self, batch_size=50, seq_length=5, datasets=[0, 1, 2, 3, 4], forcePreProcess=False):
+    def __init__(self, batch_size=50, seq_length=5, datasets=None, forcePreProcess=False):
         '''
         Initialiser function for the DataLoader class
         params:
@@ -15,8 +16,9 @@ class DataLoader():
         seq_length : RNN sequence length
         '''
         # List of data directories where raw data resides
-        self.data_dirs = ['../data/eth/univ', '../data/eth/hotel',
-                          '../data/ucy/zara/zara01', '../data/ucy/zara/zara02',
+        if datasets is None:
+            datasets = [0, 1, 2, 3, 4]
+        self.data_dirs = ['../data/ucy/zara/zara01', '../data/ucy/zara/zara02', '../data/eth/univ', '../data/eth/hotel',
                           '../data/ucy/univ']
         # self.data_dirs = ['./data/eth/univ', './data/eth/hotel']
 
@@ -33,7 +35,7 @@ class DataLoader():
         data_file = os.path.join(self.data_dir, "trajectories.cpkl")
 
         # If the file doesn't exist already or if forcePreProcess is true
-        if not(os.path.exists(data_file)) or forcePreProcess:
+        if not (os.path.exists(data_file)) or forcePreProcess:
             print("Creating pre-processed data from raw data")
             # Preprocess the data from the csv files
             self.preprocess(self.used_data_dirs, data_file)
@@ -73,7 +75,7 @@ class DataLoader():
             numPeds = np.size(np.unique(data[1, :]))
 
             # For each pedestrian in the dataset
-            for ped in range(1, numPeds+1):
+            for ped in range(1, numPeds + 1):
                 # Extract trajectory of the current ped
                 traj = data[:, data[1, :] == ped]
                 # Format it as (x, y, frameId)
@@ -83,7 +85,7 @@ class DataLoader():
                 all_ped_data[current_ped + ped] = traj
 
             # Current dataset done
-            dataset_indices.append(current_ped+numPeds)
+            dataset_indices.append(current_ped + numPeds)
             current_ped += numPeds
 
         # The complete data is a tuple of all pedestrian data, and dataset ped indices
@@ -118,11 +120,11 @@ class DataLoader():
             # Extract his trajectory
             traj = all_ped_data[ped]
             # If the length of the trajectory is greater than seq_length (+2 as we need both source and target data)
-            if traj.shape[1] > (self.seq_length+2):
+            if traj.shape[1] > (self.seq_length + 2):
                 # TODO: (Improve) Store only the (x,y) coordinates for now
                 self.data.append(traj[[0, 1], :].T)
                 # Number of batches this datapoint is worth
-                counter += int(traj.shape[1] / ((self.seq_length+2)))
+                counter += int(traj.shape[1] / ((self.seq_length + 2)))
 
         # Calculate the number of batches (each of batch_size) in the data
         self.num_batches = int(counter / self.batch_size)
@@ -139,14 +141,14 @@ class DataLoader():
             # Extract the trajectory of the pedestrian pointed out by self.pointer
             traj = self.data[self.pointer]
             # Number of sequences corresponding to his trajectory
-            n_batch = int(traj.shape[0] / (self.seq_length+2))
+            n_batch = int(traj.shape[0] / (self.seq_length + 2))
             # Randomly sample a index from which his trajectory is to be considered
             idx = random.randint(0, traj.shape[0] - self.seq_length - 2)
             # Append the trajectory from idx until seq_length into source and target data
-            x_batch.append(np.copy(traj[idx:idx+self.seq_length, :]))
-            y_batch.append(np.copy(traj[idx+1:idx+self.seq_length+1, :]))
+            x_batch.append(np.copy(traj[idx:idx + self.seq_length, :]))
+            y_batch.append(np.copy(traj[idx + 1:idx + self.seq_length + 1, :]))
 
-            if random.random() < (1.0/float(n_batch)):
+            if random.random() < (1.0 / float(n_batch)):
                 # Adjust sampling probability
                 # if this is a long datapoint, sample this data more with
                 # higher probability

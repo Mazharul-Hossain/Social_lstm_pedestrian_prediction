@@ -24,13 +24,13 @@ def main():
     parser.add_argument('--model', type=str, default='lstm',
                         help='rnn, gru, or lstm')
     # Size of each batch parameter
-    parser.add_argument('--batch_size', type=int, default=16, #default 16
+    parser.add_argument('--batch_size', type=int, default=16,  # default 16
                         help='minibatch size')
     # Length of sequence to be considered parameter
-    parser.add_argument('--seq_length', type=int, default=20,   #default 12
+    parser.add_argument('--seq_length', type=int, default=20,  # default 12
                         help='RNN sequence length')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=2,    #before the default was 50
+    parser.add_argument('--num_epochs', type=int, default=2,  # before the default was 50
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
@@ -56,13 +56,13 @@ def main():
     parser.add_argument('--neighborhood_size', type=int, default=32,
                         help='Neighborhood size to be considered for social grid')
     # Size of the social grid parameter
-    parser.add_argument('--grid_size', type=int, default=4, #default 4
+    parser.add_argument('--grid_size', type=int, default=4,  # default 4
                         help='Grid size of the social grid')
     # Maximum number of pedestrians to be considered
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum Number of Pedestrians')
     # The leave out dataset
-    parser.add_argument('--leaveDataset', type=int, default=0,
+    parser.add_argument('--leaveDataset', type=int, default=3,
                         help='The dataset index to be left out in training')
     # Lambda regularization parameter (L2)
     parser.add_argument('--lambda_param', type=float, default=0.0005,
@@ -72,24 +72,29 @@ def main():
 
 
 def train(args):
-    datasets = range(5)
+    datasets = list(range(5))
     # Remove the leaveDataset from datasets
     datasets.remove(args.leaveDataset)
 
     # Create the SocialDataLoader object
-    data_loader = SocialDataLoader(args.batch_size, args.seq_length, args.maxNumPeds, datasets, forcePreProcess=True, infer=False)
+    data_loader = SocialDataLoader(args.batch_size, args.seq_length, args.maxNumPeds, datasets, forcePreProcess=True,
+                                   infer=False)
+
+    import pathlib
 
     # Log directory
-    log_directory = 'log/'
-    log_directory += str(args.leaveDataset) + '/'
+    log_directory = os.path.join('log', str(args.leaveDataset))
+    path = pathlib.Path(log_directory)
+    path.mkdir(parents=True, exist_ok=True)
 
     # Logging files
     log_file_curve = open(os.path.join(log_directory, 'log_curve.txt'), 'w')
     log_file = open(os.path.join(log_directory, 'val.txt'), 'w')
 
     # Save directory
-    save_directory = 'save/'
-    save_directory += str(args.leaveDataset) + '/'
+    save_directory = os.path.join('save', str(args.leaveDataset))
+    path = pathlib.Path(save_directory)
+    path.mkdir(parents=True, exist_ok=True)
 
     with open(os.path.join(save_directory, 'social_config.pkl'), 'wb') as f:
         pickle.dump(args, f)
@@ -98,9 +103,9 @@ def train(args):
     model = SocialModel(args)
 
     config = tf.ConfigProto()
-    config.gpu_options.allow_growth=True
-    config=tf.ConfigProto(log_device_placement=True) # Showing which device is allocated (in case of multiple GPUs)
-    config.gpu_options.per_process_gpu_memory_fraction = 0.5 # Allocating 20% of memory in each GPU with 0.5
+    config.gpu_options.allow_growth = True
+    config = tf.ConfigProto(log_device_placement=True)  # Showing which device is allocated (in case of multiple GPUs)
+    config.gpu_options.per_process_gpu_memory_fraction = 0.4  # Allocating 20% of memory in each GPU with 0.5
     # Initialize a TensorFlow session
     with tf.Session() as sess:
         # Initialize all variables in the graph
@@ -129,9 +134,9 @@ def train(args):
                 # Tic
                 start = time.time()
 
-                # Get the source, target and dataset data for the next batch
-                # x, y are input and target data which are lists containing numpy arrays of size seq_length x maxNumPeds x 3
-                # d is the list of dataset indices from which each batch is generated (used to differentiate between datasets)
+                # Get the source, target and dataset data for the next batch x, y are input and target data which are
+                # lists containing numpy arrays of size seq_length x maxNumPeds x 3 d is the list of dataset indices
+                # from which each batch is generated (used to differentiate between datasets)
                 x, y, d = data_loader.next_batch()
 
                 # variable to store the loss for this batch
@@ -158,17 +163,15 @@ def train(args):
                     train_loss, _ = sess.run([model.cost, model.train_op], feed)
 
                     loss_batch += train_loss
+                    # print("epoch: ", e, " batch: ", b, " sequence: ", batch, " d_batch: ", d_batch)
 
                 end = time.time()
                 loss_batch = loss_batch / data_loader.batch_size
                 loss_epoch += loss_batch
-                print(
-                    "{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}"
-                    .format(
-                        e * data_loader.num_batches + b,
-                        args.num_epochs * data_loader.num_batches,
-                        e,
-                        loss_batch, end - start))
+                print("{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}".format(
+                    e * data_loader.num_batches + b,
+                    args.num_epochs * data_loader.num_batches,
+                    e, loss_batch, end - start))
 
                 # Save the model if the current epoch and batch number match the frequency
                 '''
@@ -178,7 +181,7 @@ def train(args):
                     print("model saved to {}".format(checkpoint_path))
                 '''
             loss_epoch /= data_loader.num_batches
-            log_file_curve.write(str(e)+','+str(loss_epoch)+',')
+            log_file_curve.write(str(e) + ',' + str(loss_epoch) + ',')
             print('*****************')
 
             # Validation
@@ -187,9 +190,9 @@ def train(args):
 
             for b in range(data_loader.num_batches):
 
-                # Get the source, target and dataset data for the next batch
-                # x, y are input and target data which are lists containing numpy arrays of size seq_length x maxNumPeds x 3
-                # d is the list of dataset indices from which each batch is generated (used to differentiate between datasets)
+                # Get the source, target and dataset data for the next batch x, y are input and target data which are
+                # lists containing numpy arrays of size seq_length x maxNumPeds x 3 d is the list of dataset indices
+                # from which each batch is generated (used to differentiate between datasets)
                 x, y, d = data_loader.next_valid_batch()
 
                 # variable to store the loss for this batch
@@ -229,7 +232,7 @@ def train(args):
 
             print('(epoch {}), valid_loss = {:.3f}'.format(e, loss_epoch))
             print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
-            log_file_curve.write(str(loss_epoch)+'\n')
+            log_file_curve.write(str(loss_epoch) + '\n')
             print('*****************')
 
             # Save the model after each epoch
@@ -239,7 +242,7 @@ def train(args):
             print("model saved to {}".format(checkpoint_path))
 
         print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
-        log_file.write(str(best_epoch)+','+str(best_val_loss))
+        log_file.write(str(best_epoch) + ',' + str(best_val_loss))
 
         # CLose logging files
         log_file.close()

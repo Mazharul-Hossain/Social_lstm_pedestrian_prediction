@@ -1,12 +1,12 @@
+import argparse
+import os
+import pickle
+
 import numpy as np
 import tensorflow as tf
 
-import os
-import pickle
-import argparse
-
-from utils import DataLoader
 from model import Model
+from utils import DataLoader
 
 
 def get_mean_error(predicted_traj, true_traj, observed_length):
@@ -28,7 +28,7 @@ def get_mean_error(predicted_traj, true_traj, observed_length):
         true_pos = true_traj[i, :]
 
         # The euclidean distance is the error
-        error[i-observed_length] = np.linalg.norm(true_pos - pred_pos)
+        error[i - observed_length] = np.linalg.norm(true_pos - pred_pos)
 
     # Return the mean error
     return np.mean(error)
@@ -44,7 +44,7 @@ def main():
     parser.add_argument('--pred_length', type=int, default=5,
                         help='Predicted length of the trajectory')
     # Test dataset
-    parser.add_argument('--test_dataset', type=int, default=1,
+    parser.add_argument('--test_dataset', type=int, default=3,
                         help='Dataset to be tested on')
 
     # Read the arguments
@@ -92,10 +92,11 @@ def main():
 
         # Compute the mean error between the predicted part and the true trajectory
         total_error += get_mean_error(complete_traj, x[0], sample_args.obs_length)
-        print "Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories"
+        print("Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories")
 
     # Print the mean error across all the batches
-    print "Total mean error of the model is ", total_error/data_loader.num_batches
+    print("Total mean error of the model is ", total_error / data_loader.num_batches)
+
 
 if __name__ == '__main__':
     main()

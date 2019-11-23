@@ -257,17 +257,20 @@ class SocialDataLoader():
             if idx + self.input_seq_length + self.output_seq_length < frame_data.shape[0]:
                 # All the data in this sequence
                 seq_frame_data = frame_data[idx:idx + self.input_seq_length + self.output_seq_length, :]
+
                 seq_source_frame_data = frame_data[idx:idx + self.input_seq_length, :]
                 seq_target_frame_data = frame_data[
-                                        idx + self.input_seq_length:
+                                        idx + self.output_seq_length:
                                         idx + self.input_seq_length + self.output_seq_length, :]
                 # Number of unique peds in this sequence of frames
                 pedID_list = np.unique(seq_frame_data[:, :, 0])
                 numUniquePeds = pedID_list.shape[0]
 
                 sourceData = np.zeros((self.input_seq_length, self.maxNumPeds, 3))
+                targetData = np.zeros((self.output_seq_length, self.maxNumPeds, 3))
                 for seq in range(self.input_seq_length):
                     sseq_frame_data = seq_source_frame_data[seq, :]
+                    tseq_frame_data = seq_target_frame_data[seq, :]
 
                     if numUniquePeds > self.maxNumPeds:
                         print("Max num peds surpassed: " + str(numUniquePeds) + " out of " + str(self.maxNumPeds))
@@ -284,20 +287,6 @@ class SocialDataLoader():
                             if sped.size != 0:
                                 sourceData[seq, ped, :] = sped
 
-                targetData = np.zeros((self.output_seq_length, self.maxNumPeds, 3))
-                for seq in range(self.output_seq_length):
-                    tseq_frame_data = seq_target_frame_data[seq, :]
-
-                    if numUniquePeds > self.maxNumPeds:
-                        print("Max num peds surpassed: " + str(numUniquePeds) + " out of " + str(self.maxNumPeds))
-                        numUniquePeds = self.maxNumPeds
-
-                    for ped in range(numUniquePeds):
-                        pedID = pedID_list[ped]
-
-                        if pedID == 0:
-                            continue
-                        else:
                             tped = np.squeeze(tseq_frame_data[tseq_frame_data[:, 0] == pedID, :])
                             # print("\n\ttped#{}: {}".format(tped.size, tped))
                             if tped.size != 0:
