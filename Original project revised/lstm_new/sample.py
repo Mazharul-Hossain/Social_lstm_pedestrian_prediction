@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 import tensorflow as tf
 
-import social_visualize
 from model import Model
 from social_utils import SocialDataLoader
 
@@ -114,13 +113,18 @@ def sample(args):
         results.append((x[0], complete_traj, args.obs_length))
 
     print("Saving results")
-    results_pkl = os.path.join(save_location, 'results.pkl')
-    with open(results_pkl, 'wb') as f:
-        pickle.dump(results, f)
+    # results_pkl = os.path.join(save_location, 'results.pkl')
+    # with open(results_pkl, 'wb') as f:
+    #     pickle.dump(results, f)
+
+    results_txt = os.path.join(save_location, 'results.txt')
+    with open(results_txt, 'w') as f:
+        for list_item in results:
+            f.write('%s\n' % list_item)
 
     # Print the mean error across all the batches
-    print("Total mean error of the model is ", total_error / data_loader.num_batches)
+    print("Total mean error of the model is {}".format(total_error / data_loader.num_batches))
 
-    if args.viz:
-        # creating visualization
-        social_visualize.visualize(results_pkl)
+    # if args.viz:
+    #     # creating visualization
+    #     social_visualize.visualize(results_pkl)
