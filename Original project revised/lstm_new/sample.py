@@ -102,8 +102,7 @@ def sample(args):
         # Batch size is 1
         x_batch, y_batch = x[0], y[0]
 
-        print(x_batch.shape, y_batch.shape)
-        true_traj = x_batch + y_batch[-args.pred_length:]
+        true_traj = np.concatenate((x_batch + y_batch[-args.pred_length:]), axis=0)
         # complete_traj is an array of shape ( obs_length + pred_length ) x maxNumPeds x 3
         complete_traj = model.sample(sess, x_batch, true_traj, args.pred_length)
 
