@@ -5,7 +5,7 @@
 # git reset --hard
 # git pull
 #
-# sh "Original project revised/lab221_run_inference.sh" |& tee -a log/output_inference.txt
+# sh "Original project revised/lab221_run_inference.sh" |& tee -a "Original project revised/log/output_inference.txt"
 # ctrl-a d
 #
 # tensorboard --logdir="/home/mazhar/workplace/Social_lstm_pedestrian_prediction/Original project revised/train_logs/"
@@ -40,8 +40,8 @@ python main.py -test -viz --obs_length=12 --pred_length=8
 echo "Running Social LSTM: $(date +"%r")"
 cd "../social_lstm/" || exit
 
-python train.py
-python sample.py
+python social_train.py
+python social_sample.py
 
 #################################################
 conda deactivate

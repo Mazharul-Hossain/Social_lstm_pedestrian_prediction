@@ -48,7 +48,7 @@ def main(args):
                         help='Observed length of the trajectory')
     # Predicted length of the trajectory parameter
     parser.add_argument('--pred_length', type=int, default=1,
-                        help='Predicted length of the trajectory')
+                        help='Predicted length of the trajectory must be less or equal to obs_length')
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter

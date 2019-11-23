@@ -267,7 +267,8 @@ class SocialDataLoader():
                 numUniquePeds = pedID_list.shape[0]
 
                 sourceData = np.zeros((self.input_seq_length, self.maxNumPeds, 3))
-                targetData = np.zeros((self.output_seq_length, self.maxNumPeds, 3))
+                # targetData = np.zeros((self.output_seq_length, self.maxNumPeds, 3))
+                targetData = np.zeros((self.input_seq_length, self.maxNumPeds, 3))
                 for seq in range(self.input_seq_length):
                     sseq_frame_data = seq_source_frame_data[seq, :]
                     tseq_frame_data = seq_target_frame_data[seq, :]
