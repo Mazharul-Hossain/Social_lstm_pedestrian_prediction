@@ -4,13 +4,14 @@ Script to help visualize the results of the trained model
 Author : Anirudh Vemula
 Date : 10th November 2016
 '''
-
-import numpy as np
-import matplotlib.pyplot as plt
+import os
 import pickle
 
+import matplotlib.pyplot as plt
+import numpy as np
 
-def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
+
+def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     '''
     Function that plots the true trajectories and the
     trajectories predicted by the model alongside
@@ -78,14 +79,17 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
     # plt.ylim((0, 1))
     # plt.xlim((0, 1))
     plt.title(name)
-    plt.show()
+    # plt.show()
 
-    plt.savefig('plot/plot' + name + '.png')
+    plt.savefig(os.path.join(save_location, 'plot' + name + '.png'))
     plt.gcf().clear()
     plt.close()
 
 
-def visualize(results_pkl):
+def visualize(results_pkl, save_location=None):
+    if save_location is None:
+        save_location = 'plot/'
+
     f = open(results_pkl, 'rb')
     # f = open('save/3/social_results.pkl', 'rb')
     # was f = open('save/social_results.pkl', 'rb')
@@ -93,5 +97,4 @@ def visualize(results_pkl):
 
     for i in range(len(results)):
         name = 'sequence' + str(i)
-        plot_trajectories(results[i][0], results[i][1], results[i][2], name)
-
+        plot_trajectories(results[i][0], results[i][1], results[i][2], name, save_location)
