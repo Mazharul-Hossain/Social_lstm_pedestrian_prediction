@@ -312,7 +312,7 @@ class Model:
         # Modification of SIMONE not to use a random number to decide the future position of the pedestrian:
         return mux, muy  # was return x[0][0], x[0][1]
 
-    def sample(self, sess, traj, grid, true_traj, num=10):
+    def sample(self, sess, traj, true_traj, num=10):
         # traj is a sequence of frames (of length obs_length)
         # so traj shape is (obs_length x maxNumPeds x 3)
         states = sess.run(self.LSTM_states)

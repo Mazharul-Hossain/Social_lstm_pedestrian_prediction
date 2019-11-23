@@ -34,8 +34,8 @@ conda activate mytfenv
 echo "Running LSTM: $(date +"%r")"
 cd "Original project revised/lstm/" || exit
 
-python train.py
-python sample.py
+#python train.py
+#python sample.py
 echo "-----------------------------------------------------"
 
 #################################################
@@ -53,8 +53,8 @@ echo "-----------------------------------------------------"
 echo "Running Social LSTM: $(date +"%r")"
 cd "../social_lstm/" || exit
 
-python social_train.py
-python social_sample.py
+#python social_train.py
+#python social_sample.py
 echo "-----------------------------------------------------"
 
 #################################################
