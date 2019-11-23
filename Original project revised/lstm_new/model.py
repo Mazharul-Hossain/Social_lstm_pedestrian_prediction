@@ -320,10 +320,10 @@ class Model:
         # print "Fitting"
         # For each frame in the sequence
         for index, frame in enumerate(traj[:-1]):
-            data = np.reshape(frame, (1, self.maxNumPeds, 3))
-            target_data = np.reshape(traj[index + 1], (1, self.maxNumPeds, 3))
+            data = np.reshape(frame, (1, self.args.maxNumPeds, 3))
+            target_data = np.reshape(traj[index + 1], (1, self.args.maxNumPeds, 3))
             grid_data = np.reshape(grid[index, :],
-                                   (1, self.maxNumPeds, self.maxNumPeds, self.grid_size * self.grid_size))
+                                   (1, self.args.maxNumPeds, self.args.maxNumPeds, self.grid_size * self.grid_size))
 
             feed = {self.input_data: data, self.LSTM_states: states, self.grid_data: grid_data,
                     self.target_data: target_data}
@@ -335,10 +335,11 @@ class Model:
 
         last_frame = traj[-1]
 
-        prev_data = np.reshape(last_frame, (1, self.maxNumPeds, 3))
-        prev_grid_data = np.reshape(grid[-1], (1, self.maxNumPeds, self.maxNumPeds, self.grid_size * self.grid_size))
+        prev_data = np.reshape(last_frame, (1, self.args.maxNumPeds, 3))
+        prev_grid_data = np.reshape(grid[-1],
+                                    (1, self.args.maxNumPeds, self.args.maxNumPeds, self.grid_size * self.grid_size))
 
-        prev_target_data = np.reshape(true_traj[traj.shape[0]], (1, self.maxNumPeds, 3))
+        prev_target_data = np.reshape(true_traj[traj.shape[0]], (1, self.args.maxNumPeds, 3))
         # Prediction
         for t in range(num):
             # print "**** NEW PREDICTION TIME STEP", t, "****"
@@ -348,7 +349,7 @@ class Model:
             # print "Cost", cost Output is a list of lists where the inner lists contain matrices of shape 1x5. The
             # outer list contains only one element (since seq_length=1) and the inner list contains maxNumPeds
             # elements output = output[0]
-            newpos = np.zeros((1, self.maxNumPeds, 3))
+            newpos = np.zeros((1, self.args.maxNumPeds, 3))
             for pedindex, pedoutput in enumerate(output):
                 [o_mux, o_muy, o_sx, o_sy, o_corr] = np.split(pedoutput[0], 5, 0)
                 mux, muy, sx, sy, corr = o_mux[0], o_muy[0], np.exp(o_sx[0]), np.exp(o_sy[0]), np.tanh(o_corr[0])
@@ -360,7 +361,7 @@ class Model:
             prev_data = newpos
 
             if t != num - 1:
-                prev_target_data = np.reshape(true_traj[traj.shape[0] + t + 1], (1, self.maxNumPeds, 3))
+                prev_target_data = np.reshape(true_traj[traj.shape[0] + t + 1], (1, self.args.maxNumPeds, 3))
 
         # The returned ret is of shape (obs_length+pred_length) x maxNumPeds x 3
         return ret

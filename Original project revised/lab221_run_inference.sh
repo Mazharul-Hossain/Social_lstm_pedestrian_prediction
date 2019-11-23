@@ -17,6 +17,17 @@ echo "-----------------------------------------------------"
 eval "$(conda shell.bash hook)"
 conda activate mytfenv
 
+#command_input="lstm;new;social"
+#if [[ "$1" != "" ]]; then
+#  command_input=$1
+#fi
+#
+#command_input=${command_input//;/ }
+#Rev=${IP[3]}.${IP[2]}.${IP[1]}.${IP[0]}
+#if [[ ! -d "$CHECKPOINT_DIR" ]]; then
+#  mkdir -p ${CHECKPOINT_DIR}
+#fi
+
 #################################################
 # LSTM                                          #
 #################################################
