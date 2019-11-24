@@ -87,14 +87,16 @@ def main(args):
     # flag to run testing
     parser.add_argument('-test', action='store_true',
                         help='Select testing vs training')
-    # flag to run testing
+    # flag to run graphs
     parser.add_argument('-viz', action='store_true',
+                        help='Visualize testing result')
+    parser.add_argument('-viz_only', action='store_true',
                         help='Visualize testing result')
     args = parser.parse_args()
 
     args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')
     if args.test:
-        sample.sample(args)
+        sample.sample_and_visualize(args)
     else:
         train(args)
 

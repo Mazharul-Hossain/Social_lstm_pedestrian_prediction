@@ -49,9 +49,10 @@ def main():
 
     # Read the arguments
     sample_args = parser.parse_args()
+    sample_args.train_logs = os.path.join('..', 'train_logs', 'lstm')
 
     # Load the saved arguments to the model from the config file
-    with open(os.path.join('save_lstm', 'config.pkl'), 'rb') as f:
+    with open(os.path.join(sample_args.train_logs, 'save', 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
 
     # Initialize with the saved args
@@ -62,7 +63,7 @@ def main():
     saver = tf.train.Saver()
 
     # Get the checkpoint state to load the model from
-    ckpt = tf.train.get_checkpoint_state('save_lstm')
+    ckpt = tf.train.get_checkpoint_state(os.path.join(sample_args.train_logs, 'model'))
     print('loading model: ', ckpt.model_checkpoint_path)
 
     # Restore the model at the checpoint

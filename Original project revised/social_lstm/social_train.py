@@ -1,5 +1,6 @@
 import argparse
 import os
+import pathlib
 import pickle
 import time
 
@@ -68,6 +69,8 @@ def main():
     parser.add_argument('--lambda_param', type=float, default=0.0005,
                         help='L2 regularization parameter')
     args = parser.parse_args()
+
+    args.train_logs = os.path.join('..', 'train_logs', 'social_lstm')
     train(args)
 
 
@@ -80,10 +83,8 @@ def train(args):
     data_loader = SocialDataLoader(args.batch_size, args.seq_length, args.maxNumPeds, datasets, forcePreProcess=True,
                                    infer=False)
 
-    import pathlib
-
     # Log directory
-    log_directory = os.path.join('log', str(args.leaveDataset))
+    log_directory = os.path.join(args.train_logs, 'log', str(args.leaveDataset))
     path = pathlib.Path(log_directory)
     path.mkdir(parents=True, exist_ok=True)
 
@@ -92,7 +93,7 @@ def train(args):
     log_file = open(os.path.join(log_directory, 'val.txt'), 'w')
 
     # Save directory
-    save_directory = os.path.join('save', str(args.leaveDataset))
+    save_directory = os.path.join(args.train_logs, 'save', str(args.leaveDataset))
     path = pathlib.Path(save_directory)
     path.mkdir(parents=True, exist_ok=True)
 
@@ -176,7 +177,7 @@ def train(args):
                 # Save the model if the current epoch and batch number match the frequency
                 '''
                 if (e * data_loader.num_batches + b) % args.save_every == 0 and ((e * data_loader.num_batches + b) > 0):
-                    checkpoint_path = os.path.join('save', 'social_model.ckpt')
+                    checkpoint_path = os.path.join(args.train_logs, 'model', 'social_model.ckpt')
                     saver.save(sess, checkpoint_path, global_step=e * data_loader.num_batches + b)
                     print("model saved to {}".format(checkpoint_path))
                 '''
@@ -237,7 +238,7 @@ def train(args):
 
             # Save the model after each epoch
             print('Saving model')
-            checkpoint_path = os.path.join(save_directory, 'social_model.ckpt')
+            checkpoint_path = os.path.join(args.train_logs, 'model', 'social_model.ckpt')
             saver.save(sess, checkpoint_path, global_step=e)
             print("model saved to {}".format(checkpoint_path))
 

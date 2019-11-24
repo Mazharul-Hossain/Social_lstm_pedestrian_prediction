@@ -1,5 +1,6 @@
 import argparse
 import os
+import pathlib
 import pickle
 import time
 
@@ -57,6 +58,7 @@ def main():
     parser.add_argument('--lambda_param', type=float, default=0.05,
                         help='L2 regularization parameter')
     args = parser.parse_args()
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm')
     train(args)
 
 
@@ -69,12 +71,12 @@ def train(args):
     # batches each of size args.batch_size, of length args.seq_length
     data_loader = DataLoader(args.batch_size, args.seq_length, datasets, forcePreProcess=True)
 
-    import pathlib
-    path = pathlib.Path("save_lstm")
+    save_directory = os.path.join(args.train_logs, 'save')
+    path = pathlib.Path(save_directory)
     path.mkdir(parents=True, exist_ok=True)
 
     # Save the arguments int the config file
-    with open(os.path.join('save_lstm', 'config.pkl'), 'wb') as f:
+    with open(os.path.join(save_directory, 'config.pkl'), 'wb') as f:
         pickle.dump(args, f)
 
     # Create a Vanilla LSTM model with the arguments
@@ -111,19 +113,17 @@ def train(args):
                 # Toc
                 end = time.time()
                 # Print epoch, batch, loss and time taken
-                print(
-                    "{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}"
-                    .format(
-                        e * data_loader.num_batches + b,
-                        args.num_epochs * data_loader.num_batches,
-                        e,
-                        train_loss, end - start))
+                print("{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}".format(
+                    e * data_loader.num_batches + b,
+                    args.num_epochs * data_loader.num_batches,
+                    e, train_loss, end - start))
 
                 # Save the model if the current epoch and batch number match the frequency
                 if (e * data_loader.num_batches + b) % args.save_every == 0 and ((e * data_loader.num_batches + b) > 0):
-                    checkpoint_path = os.path.join('save_lstm', 'model.ckpt')
+                    checkpoint_path = os.path.join(args.train_logs, 'model', 'model.ckpt')
                     saver.save(sess, checkpoint_path, global_step=e * data_loader.num_batches + b)
                     print("model saved to {}".format(checkpoint_path))
+
 
 if __name__ == '__main__':
     main()

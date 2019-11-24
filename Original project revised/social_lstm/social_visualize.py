@@ -4,7 +4,8 @@ Script to help visualize the results of the trained model
 Author : Anirudh Vemula
 Date : 10th November 2016
 '''
-
+import argparse
+import os
 import pickle
 
 import matplotlib.pyplot as plt
@@ -85,10 +86,19 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name):
 
 
 def main():
-    '''
-    Main function
-    '''
-    f = open('save/3/social_results.pkl', 'rb')  # was f = open('save/social_results.pkl', 'rb')
+    parser = argparse.ArgumentParser()
+    # Test dataset
+    parser.add_argument('--test_dataset', type=int, default=3,
+                        help='Dataset to be tested on')
+
+    # Parse the parameters
+    sample_args = parser.parse_args()
+
+    sample_args.train_logs = os.path.join('..', 'train_logs', 'social_lstm')
+    # Save directory
+    save_directory = os.path.join(sample_args.train_logs, 'save', str(sample_args.test_dataset))
+    f = open(os.path.join(save_directory, 'social_results.pkl'), 'rb')
+    # was f = open('save/social_results.pkl', 'rb')
     results = pickle.load(f)
 
     for i in range(len(results)):

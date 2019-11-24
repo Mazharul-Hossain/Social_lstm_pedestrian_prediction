@@ -8,7 +8,6 @@ import os
 import pickle
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
@@ -28,10 +27,10 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     plt.figure()
 
     # Load the background
-    im = plt.imread('plot/plot.png')
-    implot = plt.imshow(im)
-    width = im.shape[0]
-    height = im.shape[1]
+    # im = plt.imread('plot/plot.png')
+    # implot = plt.imshow(im)
+    # width = im.shape[0]
+    # height = im.shape[1]
     # width = 1
     # height = 1
 
@@ -64,7 +63,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
                     traj_data[j][1].append(pred_pos[j, 1:3])
 
     for j in traj_data:
-        c = np.random.rand(3, 1)
+        # c = np.random.rand(3, 1)
         true_traj_ped = traj_data[j][0]  # List of [x,y] elements
         pred_traj_ped = traj_data[j][1]
 
@@ -72,6 +71,8 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
         true_y = [(p[1] + 1) / 2 for p in true_traj_ped]
         pred_x = [(p[0] + 1) / 2 for p in pred_traj_ped]
         pred_y = [(p[1] + 1) / 2 for p in pred_traj_ped]
+
+        print(true_x, true_y, pred_x, pred_y)
 
         plt.plot(true_x, true_y, color='g', linestyle='solid', marker='o')
         plt.plot(pred_x, pred_y, color='b', linestyle='dashed', marker='x')
@@ -81,7 +82,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     plt.title(name)
     # plt.show()
 
-    plt.savefig(os.path.join(save_location, 'plot' + name + '.png'))
+    plt.savefig(os.path.join(save_location, 'plot_' + name + '.png'))
     plt.gcf().clear()
     plt.close()
 

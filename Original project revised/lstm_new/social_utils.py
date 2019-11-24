@@ -300,9 +300,9 @@ class SocialDataLoader():
 
                 # Advance the frame pointer to a random point
                 if randomUpdate:
-                    self.frame_pointer += random.randint(1, self.input_seq_length)
+                    self.frame_pointer += random.randint(1, self.input_seq_length + self.output_seq_length)
                 else:
-                    self.frame_pointer += self.input_seq_length
+                    self.frame_pointer += (self.input_seq_length + self.output_seq_length)
 
                 d.append(self.dataset_pointer)
                 i += 1

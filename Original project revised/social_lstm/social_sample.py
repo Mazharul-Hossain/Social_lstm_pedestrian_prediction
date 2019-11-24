@@ -83,8 +83,10 @@ def main():
     # Parse the parameters
     sample_args = parser.parse_args()
 
+    sample_args.train_logs = os.path.join('..', 'train_logs', 'social_lstm')
+
     # Save directory
-    save_directory = 'save/' + str(sample_args.test_dataset) + '/'
+    save_directory = os.path.join(sample_args.train_logs, 'save', str(sample_args.test_dataset))
 
     # Define the path for the config file for saved args
     with open(os.path.join(save_directory, 'social_config.pkl'), 'rb') as f:

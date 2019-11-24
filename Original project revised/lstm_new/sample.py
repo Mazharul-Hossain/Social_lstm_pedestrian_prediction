@@ -1,4 +1,5 @@
 import os
+import pathlib
 import pickle
 
 import numpy as np
@@ -54,11 +55,30 @@ def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
     return np.mean(error)
 
 
+def sample_and_visualize(args):
+    save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
+    results_pkl = os.path.join(save_location, 'results.pkl')
+
+    plot_location = os.path.join(args.train_logs, 'plot', str(args.test_dataset))
+    path = pathlib.Path(plot_location)
+    path.mkdir(parents=True, exist_ok=True)
+
+    if not args.viz_only:
+        sample(args)
+
+    if args.viz or args.viz_only:
+        # creating visualization
+        social_visualize.visualize(results_pkl, plot_location)
+
+
 def sample(args):
     # Define the path for the config file for saved args
     save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
+
     with open(os.path.join(save_location, 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
+
+    results_pkl = os.path.join(save_location, 'results.pkl')
 
     # https://stackoverflow.com/a/47087740/2049763
     tf.reset_default_graph()
@@ -114,18 +134,8 @@ def sample(args):
         results.append((true_traj, complete_traj, args.obs_length))
 
     print("Saving results")
-    results_pkl = os.path.join(save_location, 'results.pkl')
     with open(results_pkl, 'wb') as f:
         pickle.dump(results, f)
 
-    results_txt = os.path.join(save_location, 'results.txt')
-    with open(results_txt, 'w') as f:
-        for list_item in results:
-            f.write('%s\n' % str(list_item))
-
     # Print the mean error across all the batches
     print("Total mean error of the model is {}".format(total_error / data_loader.num_batches))
-
-    if args.viz:
-        # creating visualization
-        social_visualize.visualize(results_pkl, args.train_logs)
