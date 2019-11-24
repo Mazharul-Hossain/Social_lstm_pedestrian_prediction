@@ -44,10 +44,10 @@ def main(args):
 
     # Length of sequence to be considered parameter
     # Observed length of the trajectory parameter
-    parser.add_argument('--obs_length', type=int, default=20,
+    parser.add_argument('--obs_length', type=int, default=9,
                         help='Observed length of the trajectory')
     # Predicted length of the trajectory parameter
-    parser.add_argument('--pred_length', type=int, default=1,
+    parser.add_argument('--pred_length', type=int, default=4,
                         help='Predicted length of the trajectory must be less or equal to obs_length')
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
@@ -75,7 +75,7 @@ def main(args):
                         help='Embedding dimension for the spatial coordinates')
 
     # The dataset index to be left out in training; The test dataset
-    parser.add_argument('--test_dataset', type=int, default=3,
+    parser.add_argument('--test_dataset', type=int, default=0,
                         help='Dataset to be tested on')
     # Lambda regularization parameter (L2)
     parser.add_argument('--lambda_param', type=float, default=0.05,

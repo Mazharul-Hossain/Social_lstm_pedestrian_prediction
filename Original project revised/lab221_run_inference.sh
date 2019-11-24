@@ -44,7 +44,8 @@ echo "-----------------------------------------------------"
 echo "Running New LSTM: $(date +"%r")"
 cd "../lstm_new/" || exit
 
-python main.py -test -viz_only --obs_length=12 --pred_length=8
+python main.py
+#python main.py -test -viz_only --obs_length=12 --pred_length=8
 echo "-----------------------------------------------------"
 
 #################################################
