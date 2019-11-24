@@ -66,7 +66,7 @@ class Model:
         self.input_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="input_data")
 
         # target data would be the same format as input_data except with one time-step ahead
-        self.target_data = tf.placeholder(tf.float32, [args.pred_length, args.maxNumPeds, 3], name="target_data")
+        self.target_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="target_data")
 
         # Learning rate
         self.lr = tf.Variable(args.learning_rate, trainable=False, name="learning_rate")
@@ -92,7 +92,7 @@ class Model:
 
         with tf.name_scope("frame_target_data_tensors"):
             frame_target_data = [tf.squeeze(target_, [0]) for target_ in
-                                 tf.split(self.target_data, args.pred_length, 0)]
+                                 tf.split(self.target_data, args.obs_length, 0)]
 
         # Cost
         with tf.name_scope("Cost_related_stuff"):
