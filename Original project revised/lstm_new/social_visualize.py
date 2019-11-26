@@ -9,7 +9,14 @@ import pathlib
 import pickle
 
 import cv2
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import seaborn
+
+import model
+
+
+# https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
 
 
 def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
@@ -26,67 +33,112 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     traj_length, maxNumPeds, _ = true_trajs.shape
 
     # Initialize figure
-    plt.figure()
-
-    # Load the background
-    # im = plt.imread('plot/plot.png')
-    # implot = plt.imshow(im)
-    # width = im.shape[0]
-    # height = im.shape[1]
-    # width = 1
-    # height = 1
-
+    # https://towardsdatascience.com/matplotlib-seaborn-basics-2bd7b66dbee2
+    # conda install seaborn
+    seaborn.set(palette="pastel")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    box = ax.get_position()
     traj_data = {}
+
     # For each frame/each point in all trajectories
-    for i in range(traj_length):
+    def animate(i):
+        print("#### animation is called: {} \t####".format(i))
+        if i == 0:
+            traj_data.clear()
+
+        ax.clear()
+        seaborn.set(rc={'axes.facecolor': 'lightgrey', 'figure.facecolor': 'lightgrey', 'figure.edgecolor': 'black',
+                        'axes.grid': True})
+        ax.set_title(name, fontsize=12)
+        ax.set_xlim((0.2, 0.8))
+        ax.set_ylim((0.3, 0.7))
+
         pred_pos = pred_trajs[i, :]
         true_pos = true_trajs[i, :]
 
         # For each pedestrian
         for j in range(maxNumPeds):
-            if true_pos[j, 0] == 0:
-                # Not a ped
+            if model.check_true_pedestrian(true_pos[j, :], pred_pos[j, :]):
                 continue
-            elif pred_pos[j, 0] == 0:
-                # Not a ped
-                continue
-            else:
-                # If he is a ped
-                if true_pos[j, 1] > 1 or true_pos[j, 1] < 0:
-                    continue
-                elif true_pos[j, 2] > 1 or true_pos[j, 2] < 0:
-                    continue
 
-                if (j not in traj_data) and i < obs_length:
-                    traj_data[j] = [[], []]
+            if (j not in traj_data) and i < obs_length:
+                traj_data[j] = [[], []]
 
-                if j in traj_data:
-                    traj_data[j][0].append(true_pos[j, 1:3])
+            if j in traj_data:
+                traj_data[j][0].append(true_pos[j, 1:3])
+                if i >= obs_length - 1:
                     traj_data[j][1].append(pred_pos[j, 1:3])
+                    # print(i, j, "\n", traj_data[j][0], "\n", traj_data[j][1])
 
-    for j in traj_data:
-        # c = np.random.rand(3, 1)
-        true_traj_ped = traj_data[j][0]  # List of [x,y] elements
-        pred_traj_ped = traj_data[j][1]
+        for j in traj_data:
+            # c = np.random.rand(3, 1)
+            true_traj_ped = traj_data[j][0]  # List of [x,y] elements
+            pred_traj_ped = traj_data[j][1]
 
-        true_x = [(p[0] + 1) / 2 for p in true_traj_ped]
-        true_y = [(p[1] + 1) / 2 for p in true_traj_ped]
-        pred_x = [(p[0] + 1) / 2 for p in pred_traj_ped]
-        pred_y = [(p[1] + 1) / 2 for p in pred_traj_ped]
+            # if len(pred_traj_ped) > 0:
+            #     print(i, j, true_traj_ped[obs_length - 1:], pred_traj_ped)
 
-        # print(true_x, true_y, pred_x, pred_y)
+            adding_factor = 1
+            true_x = [(p[0] + adding_factor) / 2 for p in true_traj_ped]
+            true_y = [(p[1] + adding_factor) / 2 for p in true_traj_ped]
+            pred_x = [(p[0] + adding_factor) / 2 for p in pred_traj_ped]
+            pred_y = [(p[1] + adding_factor) / 2 for p in pred_traj_ped]
 
-        plt.plot(true_x, true_y, color='g', linestyle='solid', marker='o')
-        plt.plot(pred_x, pred_y, color='b', linestyle='dashed', marker='x')
+            if len(pred_traj_ped) > 0:
+                print("**** frame#{} ped#{} : ({}, {}) ****\ntrue_x:{}\npred_x:{}\ntrue_y:{}\npred_y:{}"
+                      .format(i, j, len(true_x), len(pred_x),
+                              ['%.3f' % elem for elem in true_x[-len(pred_x):]],
+                              ['%.3f' % elem for elem in pred_x],
+                              ['%.3f' % elem for elem in true_y[-len(pred_y):]],
+                              ['%.3f' % elem for elem in pred_y]))
 
-    # plt.ylim((0, 1))
-    # plt.xlim((0, 1))
-    plt.title(name)
-    # plt.show()
+            if i >= obs_length and len(pred_traj_ped) <= 1:
+                continue
 
-    plt.savefig(os.path.join(save_location, 'plot_' + name + '.png'))
-    plt.gcf().clear()
-    plt.close()
+            # color='g', linestyle='solid'
+            color_value = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+            ax.plot(true_x, true_y, color=color_value[j % len(color_value)], linestyle='dashed', marker='o',
+                    label="true_ped#{}".format(j))
+            ax.plot(pred_x, pred_y, linestyle='dotted', marker='x', label="pred_ped#{}".format(j))
+        ax.set_xlabel('time_step {}'.format(i), fontsize=10)
+        # Shrink current axis by 20%
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height * 0.8])
+
+        # Put a legend to the right of the current axis
+        # https://stackoverflow.com/a/4701285/2049763
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        return (ax,)
+
+    # call the animator
+    # print(traj_length)
+    anim = animation.FuncAnimation(fig, animate, frames=traj_length, interval=500, repeat=True)
+    plt.show()
+
+    # save the animation as mp4 video file
+    # writer = animation.PillowWriter(fps=2)  # imagemagick
+    # writer = animation.writers['ffmpeg'](fps=2, metadata=dict(artist='Me'), bitrate=1800)
+    # anim.save(os.path.join(save_location, 'plot_' + name + '.gif'), writer=writer)
+    # http://docs.wand-py.org/en/0.4.1/guide/install.html
+    # $ sudo apt-get install libmagickwand-dev libmagickcore5-extra
+    # pip install Wand
+    # anim.save(os.path.join(save_location, 'plot_' + name + '.gif'), writer='imagemagick')
+
+
+def visualize(results_pkl, save_location=None):
+    if save_location is None:
+        save_location = 'plot/'
+
+    f = open(results_pkl, 'rb')
+    # f = open('save/3/social_results.pkl', 'rb')
+    # was f = open('save/social_results.pkl', 'rb')
+    results = pickle.load(f)
+
+    zeros = '000'
+    for i in range(len(results)):
+        digits = len(str(abs(int(i))))
+        name = 'sequence_' + zeros[:-digits] + str(i)
+        print("\n{} is starting".format(name))
+        plot_trajectories(results[i][0], results[i][1], results[i][2], name, save_location)
 
 
 # https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data
@@ -142,36 +194,23 @@ def video_trajectories(results_pkl, video_input_path, video_output_path=None):
 
             # For each pedestrian
             for j in range(maxNumPeds):
-                if true_pos[j, 0] == 0:
-                    # Not a ped
+                if model.check_true_pedestrian(true_pos[j, :], pred_pos[j, :]):
                     continue
-                elif pred_pos[j, 0] == 0:
-                    # Not a ped
-                    continue
-                else:
-                    # If he is a ped
-                    if true_pos[j, 1] > 1 or true_pos[j, 1] < -1:
-                        continue
-                    elif true_pos[j, 2] > 1 or true_pos[j, 2] < -1:
-                        continue
-                    # print(true_pos[j, :])
+                true_traj_ped = true_pos[j, :3]
+                true_x = int(-1 * true_traj_ped[1] * width + width / 2)
+                true_y = int(-1 * true_traj_ped[2] * height + height / 2)
 
-                    true_traj_ped = true_pos[j, :3]
-                    true_x = int(-1 * true_traj_ped[1] * width + width / 2)
-                    true_y = int(-1 * true_traj_ped[2] * height + height / 2)
+                cv2.putText(frame, str(true_traj_ped[0]), (true_x, true_y), font, 1, (200, 255, 155), 2,
+                            cv2.LINE_AA)
+                cv2.circle(frame, (true_x, true_y), 15, (200, 255, 155), 3)
 
-                    cv2.putText(frame, str(true_traj_ped[0]), (true_x, true_y), font, 1, (200, 255, 155), 2,
-                                cv2.LINE_AA)
-                    cv2.circle(frame, (true_x, true_y), 15, (200, 255, 155), 3)
+                if i >= obs_length:
+                    pred_traj_ped = pred_pos[j, :3]
 
-                    if i >= obs_length:
-                        pred_traj_ped = pred_pos[j, :3]
+                    pred_x = int(pred_traj_ped[1] * width + width / 2)
+                    pred_y = int(pred_traj_ped[2] * height + height / 2)
 
-                        pred_x = int(pred_traj_ped[1] * width + width / 2)
-                        pred_y = int(pred_traj_ped[2] * height + height / 2)
-
-                        cv2.circle(frame, (pred_x, pred_y), 15, (0, 0, 255), 3)
-
+                    cv2.circle(frame, (pred_x, pred_y), 15, (0, 0, 255), 3)
             out.write(frame)
             cv2.namedWindow("result", cv2.WINDOW_NORMAL)
             cv2.imshow("result", frame)
@@ -181,7 +220,6 @@ def video_trajectories(results_pkl, video_input_path, video_output_path=None):
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
     # do a bit of cleanup
     print("[INFO] Cleaning up...")
     vid.release()
@@ -189,22 +227,12 @@ def video_trajectories(results_pkl, video_input_path, video_output_path=None):
     cv2.destroyAllWindows()
 
 
-def visualize(results_pkl, save_location=None):
-    if save_location is None:
-        save_location = 'plot/'
-
-    f = open(results_pkl, 'rb')
-    # f = open('save/3/social_results.pkl', 'rb')
-    # was f = open('save/social_results.pkl', 'rb')
-    results = pickle.load(f)
-
-    zeros = '000'
-    for i in range(len(results)):
-        digits = len(str(abs(int(i))))
-        name = 'sequence' + zeros[:-digits] + str(i)
-        plot_trajectories(results[i][0], results[i][1], results[i][2], name, save_location)
-
-# results_pkl = "D:\\UofMemphis\\Coding\\notebooks\\Social_lstm_pedestrian_prediction\\Original project revised\\train_logs\\lstm\\save\\3\\results.pkl"
-# video_input_path = "D:\\UofMemphis\\Coding\\notebooks\\Social_lstm_pedestrian_prediction\\Original project revised\\data\\eth\\hotel\\seq_hotel\\seq_hotel.avi"
-# video_output_path = "D:\\UofMemphis\\Coding\\notebooks\\Social_lstm_pedestrian_prediction\\Original project revised\\train_logs\\lstm\\video\\3\\"
+# results_pkl = "..\\train_logs\\lstm_new\\save\\0\\results.pkl"
+# video_input_path = "..\\data\\ucy\\zara\\zara01\\crowds_zara01.avi"
+# video_output_path = "..\\train_logs\\lstm_new\\video\\0\\"
 # video_trajectories(results_pkl, video_input_path, video_output_path)
+# save_location = "..\\train_logs\\lstm_new\\plot\\0\\"
+
+results_pkl = "..\\train_logs\\social_lstm\\save\\3\\social_results.pkl"
+save_location = "..\\train_logs\\social_lstm\\plot\\3\\"
+visualize(results_pkl, save_location)
