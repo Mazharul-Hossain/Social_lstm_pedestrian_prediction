@@ -215,7 +215,8 @@ class Model:
             self.output_b = tf.get_variable("output_b", [self.output_size], initializer=tf.constant_initializer(0.01),
                                             trainable=True)
 
-    def tf_2d_normal(self, x, y, mux, muy, sx, sy, rho):
+    @staticmethod
+    def tf_2d_normal(x, y, mux, muy, sx, sy, rho):
         """
         Function that implements the PDF of a 2D normal distribution
         params:
@@ -277,7 +278,8 @@ class Model:
         # Sum up all log probabilities for each data point
         return tf.reduce_sum(result1)
 
-    def get_coef(self, output):
+    @staticmethod
+    def get_coef(output):
         # eq 20 -> 22 of Graves (2013)
 
         z = output
@@ -292,7 +294,8 @@ class Model:
 
         return [z_mux, z_muy, z_sx, z_sy, z_corr]
 
-    def sample_gaussian_2d(self, mux, muy, sx, sy, rho):
+    @staticmethod
+    def sample_gaussian_2d(mux, muy, sx, sy, rho):
         """
         Function to sample a point from a given 2D normal distribution
         params:
@@ -312,15 +315,20 @@ class Model:
         # Modification of SIMONE not to use a random number to decide the future position of the pedestrian:
         return mux, muy  # was return x[0][0], x[0][1]
 
-    def sample(self, sess, traj, true_traj, num=10):
-        # traj is a sequence of frames (of length obs_length)
-        # so traj shape is (obs_length x maxNumPeds x 3)
+    def sample(self, sess, obs_traj, true_traj, num=10):
+        """
+        Function that computes the trajectory predicted based on observed trajectory
+
+        params: obs_traj : a sequence of frames (of length obs_length) of shape is (obs_length x maxNumPeds x 3)
+        true_traj : numpy matrix with the points of the true trajectory of shape (obs_length+pred_length) x
+                    maxNumPeds x 3
+        """
         states = sess.run(self.LSTM_states)
         # print "Fitting"
         # For each frame in the sequence
-        for index, frame in enumerate(traj[:-1]):
+        for index, frame in enumerate(obs_traj[:-1]):
             data = np.reshape(frame, (1, self.args.maxNumPeds, 3))
-            target_data = np.reshape(traj[index + 1], (1, self.args.maxNumPeds, 3))
+            target_data = np.reshape(obs_traj[index + 1], (1, self.args.maxNumPeds, 3))
 
             feed = {self.input_data: data, self.LSTM_states: states,
                     self.target_data: target_data}
@@ -328,13 +336,13 @@ class Model:
             [states, cost] = sess.run([self.final_states, self.cost], feed)
             # print cost
 
-        ret = traj
+        ret = obs_traj
 
-        last_frame = traj[-1]
+        last_frame = obs_traj[-1]
 
         prev_data = np.reshape(last_frame, (1, self.args.maxNumPeds, 3))
 
-        prev_target_data = np.reshape(true_traj[traj.shape[0]], (1, self.args.maxNumPeds, 3))
+        prev_target_data = np.reshape(true_traj[obs_traj.shape[0]], (1, self.args.maxNumPeds, 3))
         # Prediction
         for t in range(num):
             # print "**** NEW PREDICTION TIME STEP", t, "****"
@@ -356,7 +364,59 @@ class Model:
             prev_data = newpos
 
             if t != num - 1:
-                prev_target_data = np.reshape(true_traj[traj.shape[0] + t + 1], (1, self.args.maxNumPeds, 3))
+                prev_target_data = np.reshape(true_traj[obs_traj.shape[0] + t + 1], (1, self.args.maxNumPeds, 3))
 
         # The returned ret is of shape (obs_length+pred_length) x maxNumPeds x 3
         return ret
+
+    @staticmethod
+    def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
+        """
+        Function that computes the mean euclidean distance error between the
+        predicted and the true trajectory
+        params:
+        predicted_traj : numpy matrix with the points of the predicted trajectory
+        true_traj : numpy matrix with the points of the true trajectory
+        observed_length : The length of trajectory observed
+        """
+        # The data structure to store all errors
+        error = np.zeros(len(true_traj) - observed_length)
+        # For each point in the predicted part of the trajectory
+        for i in range(observed_length, len(true_traj)):
+            # The predicted position. This will be a maxNumPeds x 3 matrix
+            pred_pos = predicted_traj[i, :]
+            # The true position. This will be a maxNumPeds x 3 matrix
+            true_pos = true_traj[i, :]
+            timestep_error = 0
+            counter = 0
+            for j in range(maxNumPeds):
+                if check_true_pedestrian(true_pos[j, :], pred_pos[j, :]):
+                    continue
+
+                timestep_error += np.linalg.norm(true_pos[j, [1, 2]] - pred_pos[j, [1, 2]])
+                counter += 1
+
+            if counter != 0:
+                error[i - observed_length] = timestep_error / counter
+
+            # The euclidean distance is the error
+            # error[i-observed_length] = np.linalg.norm(true_pos - pred_pos)
+
+        # Return the mean error
+        return np.mean(error)
+
+
+def check_true_pedestrian(true_pos, pred_pos):
+    # print("check_true_pedestrian: {} {}".format(len(true_pos), len(pred_pos)))
+    if true_pos[0] == 0:
+        # Non-existent ped
+        return True
+    elif pred_pos[0] == 0:
+        # Ped comes in the prediction time. Not seen in observed part
+        return True
+    else:
+        if true_pos[1] > 1 or true_pos[1] < -1:
+            return True
+        elif true_pos[2] > 1 or true_pos[2] < -1:
+            return True
+    return False

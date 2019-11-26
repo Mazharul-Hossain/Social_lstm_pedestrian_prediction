@@ -42,7 +42,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
 
     # For each frame/each point in all trajectories
     def animate(i):
-        print("#### animation is called: {} \t####".format(i))
+        print("#### animation is called: {} \t ####".format(i))
         if i == 0:
             traj_data.clear()
 

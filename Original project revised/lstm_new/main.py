@@ -71,7 +71,7 @@ def main(args):
     parser.add_argument('--keep_prob', type=float, default=0.8,
                         help='dropout keep probability')
     # Dimension of the embeddings parameter; same as rnn_size, here rnn_size/2
-    parser.add_argument('--embedding_size', type=int, default=64,
+    parser.add_argument('--embedding_size', type=int, default=128,
                         help='Embedding dimension for the spatial coordinates')
 
     # The dataset index to be left out in training; The test dataset
@@ -204,7 +204,7 @@ def train(args):
                     if not np.isnan(train_loss):
                         loss_per_batch.append(train_loss)
                     else:
-                        print("batch#{}, sequence#{} train_loss is NaN".format(batch, sequence))
+                        print("epoch#{} batch#{} sequence#{} train_loss is NaN".format(epoch, batch, sequence))
 
                 avg_loss_per_batch = np.mean(loss_per_batch)
                 loss_per_epoch.append(avg_loss_per_batch)
@@ -214,7 +214,7 @@ def train(args):
                 print("{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}".format(
                     my_global_step,
                     args.num_epochs * data_loader.num_batches,
-                    epoch, avg_loss_per_batch, time.time() - start), loss_per_batch)
+                    epoch, avg_loss_per_batch, time.time() - start))
 
                 # Save the model if the current epoch and batch number match the frequency
                 if my_global_step % args.save_every == 0 and (my_global_step > 0):

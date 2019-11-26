@@ -10,51 +10,6 @@ from model import Model
 from social_utils import SocialDataLoader
 
 
-def get_mean_error(predicted_traj, true_traj, observed_length, maxNumPeds):
-    '''
-    Function that computes the mean euclidean distance error between the
-    predicted and the true trajectory
-    params:
-    predicted_traj : numpy matrix with the points of the predicted trajectory
-    true_traj : numpy matrix with the points of the true trajectory
-    observed_length : The length of trajectory observed
-    '''
-    # The data structure to store all errors
-    error = np.zeros(len(true_traj) - observed_length)
-    # For each point in the predicted part of the trajectory
-    for i in range(observed_length, len(true_traj)):
-        # The predicted position. This will be a maxNumPeds x 3 matrix
-        pred_pos = predicted_traj[i, :]
-        # The true position. This will be a maxNumPeds x 3 matrix
-        true_pos = true_traj[i, :]
-        timestep_error = 0
-        counter = 0
-        for j in range(maxNumPeds):
-            if true_pos[j, 0] == 0:
-                # Non-existent ped
-                continue
-            elif pred_pos[j, 0] == 0:
-                # Ped comes in the prediction time. Not seen in observed part
-                continue
-            else:
-                if true_pos[j, 1] > 1 or true_pos[j, 1] < 0:
-                    continue
-                elif true_pos[j, 2] > 1 or true_pos[j, 2] < 0:
-                    continue
-
-                timestep_error += np.linalg.norm(true_pos[j, [1, 2]] - pred_pos[j, [1, 2]])
-                counter += 1
-
-        if counter != 0:
-            error[i - observed_length] = timestep_error / counter
-
-        # The euclidean distance is the error
-        # error[i-observed_length] = np.linalg.norm(true_pos - pred_pos)
-
-    # Return the mean error
-    return np.mean(error)
-
-
 def sample_and_visualize(args):
     save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
     results_pkl = os.path.join(save_location, 'results.pkl')
@@ -128,7 +83,7 @@ def sample(args):
 
         # ipdb.set_trace()
         # complete_traj is an array of shape (obs_length+pred_length) x maxNumPeds x 3
-        total_error += get_mean_error(complete_traj, true_traj, args.obs_length, saved_args.maxNumPeds)
+        total_error += model.get_mean_error(complete_traj, true_traj, args.obs_length, saved_args.maxNumPeds)
 
         print("Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories")
         results.append((true_traj, complete_traj, args.obs_length))
