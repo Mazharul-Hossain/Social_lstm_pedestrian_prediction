@@ -173,9 +173,9 @@ def train(args):
         tf_loss_summary = tf.summary.scalar('loss', tf_loss_ph)
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_embedding_w_ph = tf.placeholder(tf.float32, shape=None, name='embedding_w_summary')
-        tf_embedding_w_summary = tf.summary.scalar('loss', tf_embedding_w_ph)
+        tf_embedding_w_summary = tf.summary.scalar('embedding_w', tf_embedding_w_ph)
         tf_output_w_ph = tf.placeholder(tf.float32, shape=None, name='output_w_summary')
-        tf_output_w_summary = tf.summary.scalar('loss', tf_output_w_ph)
+        tf_output_w_summary = tf.summary.scalar('output_w', tf_output_w_ph)
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
@@ -255,9 +255,9 @@ def train(args):
             for var, val in zip(vars, gradients):
                 # print("var: {}, value: {}".format(var.name, np.sum(val)))
                 if 'embedding_w' in var.name:
-                    embedding_w_summary = np.sum(val)
+                    embedding_w_summary = np.sum(np.absolute(val))
                 elif 'output_w' in var.name:
-                    output_w_summary = np.sum(val)
+                    output_w_summary = np.sum(np.absolute(val))
 
             avg_loss_per_epoch = np.mean(loss_per_epoch)
             print('# (Epoch {}/{}), Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, avg_loss_per_epoch))
