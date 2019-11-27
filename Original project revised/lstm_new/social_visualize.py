@@ -112,7 +112,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     # call the animator
     # print(traj_length)
     anim = animation.FuncAnimation(fig, animate, frames=traj_length, interval=500, repeat=True)
-    plt.show()
+    # plt.show()
 
     # save the animation as mp4 video file
     # writer = animation.PillowWriter(fps=2)  # imagemagick
@@ -121,7 +121,7 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     # http://docs.wand-py.org/en/0.4.1/guide/install.html
     # $ sudo apt-get install libmagickwand-dev libmagickcore5-extra
     # pip install Wand
-    # anim.save(os.path.join(save_location, 'plot_' + name + '.gif'), writer='imagemagick')
+    anim.save(os.path.join(save_location, 'plot_' + name + '.gif'), writer='imagemagick')
 
 
 def visualize(results_pkl, save_location=None):
@@ -226,13 +226,12 @@ def video_trajectories(results_pkl, video_input_path, video_output_path=None):
     out.release()
     cv2.destroyAllWindows()
 
-
 # results_pkl = "..\\train_logs\\lstm_new\\save\\0\\results.pkl"
 # video_input_path = "..\\data\\ucy\\zara\\zara01\\crowds_zara01.avi"
 # video_output_path = "..\\train_logs\\lstm_new\\video\\0\\"
 # video_trajectories(results_pkl, video_input_path, video_output_path)
 # save_location = "..\\train_logs\\lstm_new\\plot\\0\\"
 
-results_pkl = "..\\train_logs\\social_lstm\\save\\3\\social_results.pkl"
-save_location = "..\\train_logs\\social_lstm\\plot\\3\\"
-visualize(results_pkl, save_location)
+# results_pkl = "..\\train_logs\\social_lstm\\save\\3\\social_results.pkl"
+# save_location = "..\\train_logs\\social_lstm\\plot\\3\\"
+# visualize(results_pkl, save_location)

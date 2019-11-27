@@ -11,32 +11,29 @@ from social_utils import SocialDataLoader
 
 
 def sample_and_visualize(args):
+    # Define the path for the config file for saved args
     save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
     results_pkl = os.path.join(save_location, 'results.pkl')
+
+    # Get the checkpoint state for the model
+    model_directory = os.path.join(args.train_logs, 'model', str(args.test_dataset))
 
     plot_location = os.path.join(args.train_logs, 'plot', str(args.test_dataset))
     path = pathlib.Path(plot_location)
     path.mkdir(parents=True, exist_ok=True)
 
     if not args.viz_only:
-        sample(args)
+        sample(args, save_location, model_directory)
 
     if args.viz or args.viz_only:
         # creating visualization
         social_visualize.visualize(results_pkl, plot_location)
 
 
-def sample(args):
-    # Define the path for the config file for saved args
-    save_location = os.path.join(args.train_logs, 'save', str(args.test_dataset))
-
+def sample(args, save_location, model_directory):
+    results_pkl = os.path.join(save_location, 'results.pkl')
     with open(os.path.join(save_location, 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
-
-    results_pkl = os.path.join(save_location, 'results.pkl')
-
-    # https://stackoverflow.com/a/47087740/2049763
-    tf.reset_default_graph()
 
     # Create a SocialModel object with the saved_args and infer set to true
     model = Model(saved_args, True)
@@ -45,12 +42,10 @@ def sample(args):
     config.gpu_options.per_process_gpu_memory_fraction = 0.4  # Allocating 40% of memory in each GPU
     sess = tf.InteractiveSession(config=config)
 
-    # Initialize a saver
-    saver = tf.train.Saver()
-    # Get the checkpoint state for the model
-    model_directory = os.path.join(args.train_logs, 'model', str(args.test_dataset))
     ckpt = tf.train.get_checkpoint_state(model_directory)
 
+    # Initialize a saver
+    saver = tf.train.Saver()
     # Restore the model at the checkpoint
     saver.restore(sess, ckpt.model_checkpoint_path)
 
@@ -80,9 +75,6 @@ def sample(args):
         true_traj = np.concatenate((x_batch, y_batch[-args.pred_length:]), axis=0)
         # complete_traj is an array of shape ( obs_length + pred_length ) x maxNumPeds x 3
         complete_traj = model.sample(sess, x_batch, true_traj, args.pred_length)
-
-        # ipdb.set_trace()
-        # complete_traj is an array of shape (obs_length+pred_length) x maxNumPeds x 3
         total_error += model.get_mean_error(complete_traj, true_traj, args.obs_length, saved_args.maxNumPeds)
 
         print("Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories")

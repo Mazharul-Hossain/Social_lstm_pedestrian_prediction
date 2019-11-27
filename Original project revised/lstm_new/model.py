@@ -31,7 +31,18 @@ class Model:
         # Store the arguments
         self.args = args
 
-        # dropout = tf.placeholder(tf.float32)
+        # placeholders for the input data and the target data
+        # A sequence contains an ordered set of consecutive frames
+        # Each frame can contain a maximum of 'args.maxNumPeds' number of peds
+        # For each ped we have their (pedID, x, y) positions as input
+        self.input_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="input_data")
+        # target data would be the same format as input_data except with one time-step ahead
+        self.target_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="target_data")
+        # Learning rate
+        self.lr = tf.Variable(args.learning_rate, trainable=False, name="learning_rate")
+        # keep prob
+        self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+
         cells = []
         for _ in range(args.num_layers):
             # Initialize a BasicLSTMCell recurrent unit
@@ -48,7 +59,7 @@ class Model:
                     cell = rnn_cell.GRUCell(args.rnn_size, state_is_tuple=False)
 
             if not infer and args.keep_prob < 1:
-                cell = rnn_cell.DropoutWrapper(cell, output_keep_prob=args.keep_prob)
+                cell = rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
 
             cells.append(cell)
 
@@ -58,18 +69,6 @@ class Model:
 
         # Store the recurrent unit
         self.cell = cell
-
-        # placeholders for the input data and the target data
-        # A sequence contains an ordered set of consecutive frames
-        # Each frame can contain a maximum of 'args.maxNumPeds' number of peds
-        # For each ped we have their (pedID, x, y) positions as input
-        self.input_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="input_data")
-
-        # target data would be the same format as input_data except with one time-step ahead
-        self.target_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="target_data")
-
-        # Learning rate
-        self.lr = tf.Variable(args.learning_rate, trainable=False, name="learning_rate")
 
         # Output size is the set of parameters (mu, sigma, corr)
         self.output_size = 5  # 2 mu, 2 sigma and 1 corr
@@ -108,10 +107,11 @@ class Model:
         with tf.name_scope("Non_existent_ped_stuff"):
             nonexistent_ped = tf.constant(0.0, name="zero_ped")
 
+        self.final_result = []
         # Iterate over each frame in the sequence
         for seq, frame in enumerate(frame_data):
             # print("Frame number", seq)
-
+            final_result_ped = []
             current_frame_data = frame  # MNP x 3 tensor
             for ped in range(args.maxNumPeds):
                 # pedID of the current pedestrian
@@ -147,6 +147,7 @@ class Model:
                 with tf.name_scope("get_coef"):
                     # Extract coef from output of the linear output layer
                     [o_mux, o_muy, o_sx, o_sy, o_corr] = self.get_coef(self.initial_output[ped])
+                    final_result_ped.append([o_mux, o_muy, o_sx, o_sy, o_corr])
 
                 # Calculate loss for the current ped
                 with tf.name_scope("calculate_loss"):
@@ -163,6 +164,7 @@ class Model:
                         tf.logical_or(tf.equal(pedID, nonexistent_ped), tf.equal(target_pedID, nonexistent_ped)),
                         self.counter, tf.add(self.counter, self.increment))
 
+            self.final_result.append(tf.stack(final_result_ped))
         # Compute the cost
         with tf.name_scope("mean_cost"):
             # Mean of the cost
@@ -180,13 +182,6 @@ class Model:
         # Get the final distribution parameters
         self.final_output = self.initial_output
 
-        # TODO: (resolve) We are clipping the gradients as is usually done in LSTM
-        # implementations. Social LSTM paper doesn't mention about this at all
-        # Calculate gradients of the cost w.r.t all the trainable variables
-        self.gradients = tf.gradients(self.cost, tvars)
-        # Clip the gradients if they are larger than the value given in args
-        grads, _ = tf.clip_by_global_norm(self.gradients, args.grad_clip)
-
         # initialize the optimizer with the given learning rate
         if args.optimizer == "RMSprop":
             optimizer = tf.train.RMSPropOptimizer(self.lr)
@@ -194,8 +189,19 @@ class Model:
             # NOTE: Using RMSprop as suggested by Social LSTM instead of Adam as Graves(2013) does
             optimizer = tf.train.AdamOptimizer(self.lr)
 
+        # How to apply gradient clipping in TensorFlow? https://stackoverflow.com/a/43486487/2049763
+        #         # https://stackoverflow.com/a/40540396/2049763
+        # TODO: (resolve) We are clipping the gradients as is usually done in LSTM
+        # implementations. Social LSTM paper doesn't mention about this at all
+        # Calculate gradients of the cost w.r.t all the trainable variables
+        self.gradients = tf.gradients(self.cost, tvars)
+        # self.gradients = optimizer.compute_gradients(self.cost, var_list=tvars)
+        # Clip the gradients if they are larger than the value given in args
+        self.clipped_gradients, _ = tf.clip_by_global_norm(self.gradients, args.grad_clip)
+
         # Train operator
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        self.train_op = optimizer.apply_gradients(zip(self.clipped_gradients, tvars))
+        # self.train_op = optimizer.apply_gradients(self.clipped_gradients, var_list=tvars)
 
         # Merge all summaries
         # merged_summary_op = tf.summary.merge_all()
@@ -204,15 +210,17 @@ class Model:
         # Define variables for the spatial coordinates embedding layer
         with tf.variable_scope("coordinate_embedding"):
             self.embedding_w = tf.get_variable("embedding_w", [2, args.embedding_size],
-                                               initializer=tf.truncated_normal_initializer(stddev=0.1))
+                                               initializer=tf.truncated_normal_initializer(stddev=0.1),
+                                               trainable=True)
             self.embedding_b = tf.get_variable("embedding_b", [args.embedding_size],
-                                               initializer=tf.constant_initializer(0.1))
+                                               initializer=tf.zeros_initializer(),
+                                               trainable=True)
 
         # Define variables for the output linear layer
         with tf.variable_scope("output_layer"):
             self.output_w = tf.get_variable("output_w", [args.rnn_size, self.output_size],
                                             initializer=tf.truncated_normal_initializer(stddev=0.01), trainable=True)
-            self.output_b = tf.get_variable("output_b", [self.output_size], initializer=tf.constant_initializer(0.01),
+            self.output_b = tf.get_variable("output_b", [self.output_size], initializer=tf.zeros_initializer(),
                                             trainable=True)
 
     @staticmethod
@@ -315,7 +323,7 @@ class Model:
         # Modification of SIMONE not to use a random number to decide the future position of the pedestrian:
         return mux, muy  # was return x[0][0], x[0][1]
 
-    def sample(self, sess, obs_traj, true_traj, num=10):
+    def sample(self, sess, obs_traj, true_traj, pred_length=10):
         """
         Function that computes the trajectory predicted based on observed trajectory
 
@@ -331,7 +339,7 @@ class Model:
             target_data = np.reshape(obs_traj[index + 1], (1, self.args.maxNumPeds, 3))
 
             feed = {self.input_data: data, self.LSTM_states: states,
-                    self.target_data: target_data}
+                    self.target_data: target_data, self.keep_prob: 1.}
 
             [states, cost] = sess.run([self.final_states, self.cost], feed)
             # print cost
@@ -344,10 +352,10 @@ class Model:
 
         prev_target_data = np.reshape(true_traj[obs_traj.shape[0]], (1, self.args.maxNumPeds, 3))
         # Prediction
-        for t in range(num):
+        for t in range(pred_length):
             # print "**** NEW PREDICTION TIME STEP", t, "****"
             feed = {self.input_data: prev_data, self.LSTM_states: states,
-                    self.target_data: prev_target_data}
+                    self.target_data: prev_target_data, self.keep_prob: 1.}
             [output, states, cost] = sess.run([self.final_output, self.final_states, self.cost], feed)
             # print "Cost", cost Output is a list of lists where the inner lists contain matrices of shape 1x5. The
             # outer list contains only one element (since seq_length=1) and the inner list contains maxNumPeds
@@ -363,7 +371,7 @@ class Model:
             ret = np.vstack((ret, newpos))
             prev_data = newpos
 
-            if t != num - 1:
+            if t != pred_length - 1:
                 prev_target_data = np.reshape(true_traj[obs_traj.shape[0] + t + 1], (1, self.args.maxNumPeds, 3))
 
         # The returned ret is of shape (obs_length+pred_length) x maxNumPeds x 3
@@ -393,6 +401,7 @@ class Model:
                 if check_true_pedestrian(true_pos[j, :], pred_pos[j, :]):
                     continue
 
+                # print(true_pos[j], pred_pos[j])
                 timestep_error += np.linalg.norm(true_pos[j, [1, 2]] - pred_pos[j, [1, 2]])
                 counter += 1
 
@@ -404,6 +413,46 @@ class Model:
 
         # Return the mean error
         return np.mean(error)
+
+    @staticmethod
+    def training_gaussian_2d(mux, muy, sx, sy, rho):
+        """
+        Function to sample a point from a given 2D normal distribution
+        params:
+        mux : mean of the distribution in x
+        muy : mean of the distribution in y
+        sx : std dev of the distribution in x
+        sy : std dev of the distribution in y
+        rho : Correlation factor of the distribution
+        """
+        # Extract mean
+        mean = [mux, muy]
+        # Extract covariance matrix
+        cov = [[sx * sx, rho * sx * sy], [rho * sx * sy, sy * sy]]
+        # Sample a point from the multivariate normal distribution
+        x = np.random.multivariate_normal(mean, cov, 1)
+
+        # print("training_gaussian_2d: ", mean, x[0])
+        return x[0][0], x[0][1]
+
+    def training_mean_error(self, x_batch, y_batch, output):
+        # find mean error
+        true_traj = np.concatenate((x_batch, y_batch[-self.args.pred_length:]), axis=0)
+        # complete_traj is an array of shape ( obs_length + pred_length ) x maxNumPeds x 3
+        complete_traj = x_batch
+        prev_data = np.reshape(x_batch[-1], (1, self.args.maxNumPeds, 3))
+        for frame_index, frame in enumerate(output[-self.args.pred_length:]):
+            newpos = np.zeros((1, self.args.maxNumPeds, 3))
+            for ped_index, ped_output in enumerate(frame):
+                mux, muy, sx, sy, corr = ped_output[:]
+                mux, muy, sx, sy, corr = mux[0][0], muy[0][0], sx[0][0], sy[0][0], corr[0][0]
+                next_x, next_y = self.training_gaussian_2d(mux, muy, sx, sy, corr)
+
+                newpos[0, ped_index, :] = [prev_data[0, ped_index, 0], next_x, next_y]
+            complete_traj = np.vstack((complete_traj, newpos))
+            prev_data = newpos
+        # complete_traj is an array of shape (obs_length+pred_length) x maxNumPeds x 3
+        return self.get_mean_error(complete_traj, true_traj, self.args.obs_length, self.args.maxNumPeds)
 
 
 def check_true_pedestrian(true_pos, pred_pos):
