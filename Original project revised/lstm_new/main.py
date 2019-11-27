@@ -20,6 +20,7 @@ import pickle
 import sys
 import time
 import traceback
+from datetime import datetime
 
 import numpy as np
 import tensorflow as tf
@@ -97,7 +98,7 @@ def main(args):
                         help='Visualize testing result')
     args = parser.parse_args()
 
-    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_' + datetime.now().strftime("%Y%m%d_%H%M%S"))
     for dataset in range(5):
         try:
             args.test_dataset = dataset
@@ -174,19 +175,20 @@ def train(args):
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_embedding_w_ph = tf.placeholder(tf.float32, shape=None, name='embedding_w_summary')
         tf_embedding_w_summary = tf.summary.scalar('embedding_w', tf_embedding_w_ph)
+        # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_output_w_ph = tf.placeholder(tf.float32, shape=None, name='output_w_summary')
         tf_output_w_summary = tf.summary.scalar('output_w', tf_output_w_ph)
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
-        # Create a scalar summary object for the loss so it can be displayed
         tf_val_loss_summary = tf.summary.scalar('val_loss', tf_val_loss_ph)
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_error_ph = tf.placeholder(tf.float32, shape=None, name='val_error_summary')
-        # Create a scalar summary object for the loss so it can be displayed
         tf_val_error_summary = tf.summary.scalar('val_error', tf_val_error_ph)
 
-        writer = tf.summary.FileWriter(model_directory, sess.graph)
+        # https://stackoverflow.com/a/40148954/2049763
+        train_writer = tf.summary.FileWriter(os.path.join(model_directory, 'train'), sess.graph)
+        val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
 
         # Initialize all the variables in the graph
         sess.run(tf.global_variables_initializer())
@@ -199,7 +201,7 @@ def train(args):
         # For each epoch
         for epoch in range(args.num_epochs):
             # Assign the learning rate (decayed acc. to the epoch number)
-            sess.run(tf.assign(model.lr, args.learning_rate * (args.decay_rate ** epoch)))
+            learning_rate = args.learning_rate * (args.decay_rate ** epoch)
             # Reset the pointers in the data loader object
             data_loader.reset_batch_pointer()
 
@@ -225,7 +227,8 @@ def train(args):
                     x_batch, y_batch = x[sequence], y[sequence]
 
                     # Feed the source, target data
-                    feed = {model.input_data: x_batch, model.target_data: y_batch, model.keep_prob: args.keep_prob}
+                    feed = {model.input_data: x_batch, model.target_data: y_batch,
+                            model.keep_prob: args.keep_prob, model.lr: learning_rate}
 
                     train_loss, gradients, _ = sess.run([model.cost, model.clipped_gradients, model.train_op], feed)
 
@@ -269,7 +272,9 @@ def train(args):
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
                            tf_output_w_ph: output_w_summary})
+
             training_summaries = tf.summary.merge([training_loss_summary, embedding_w_summary, output_w_summary])
+            training_summaries_tensor = sess.run(training_summaries)
 
             # Validation
             data_loader.reset_batch_pointer(valid=True)
@@ -322,11 +327,14 @@ def train(args):
                                                                       tf_val_error_ph: avg_val_error_per_epoch})
 
             # Merge all summaries together
-            performance_summaries = tf.summary.merge([training_summaries, val_loss_summary, val_error_summary])
+            performance_summaries = tf.summary.merge([val_loss_summary, val_error_summary])
             # https://stackoverflow.com/a/51784126/2049763
             performance_summaries_tensor = sess.run(performance_summaries)
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
-            writer.add_summary(performance_summaries_tensor, epoch)
+            train_writer.add_summary(training_summaries_tensor, epoch)
+            val_writer.add_summary(performance_summaries_tensor, epoch)
+            train_writer.flush()
+            val_writer.flush()
 
         print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
         log_file.write(str(best_epoch) + ',' + str(best_val_loss))
@@ -338,7 +346,8 @@ def train(args):
         # CLose logging files
         log_file.close()
         log_file_curve.close()
-        writer.close()
+        train_writer.close()
+        val_writer.close()
 
 
 if __name__ == '__main__':
