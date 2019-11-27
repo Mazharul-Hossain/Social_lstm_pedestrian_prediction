@@ -99,6 +99,10 @@ def main(args):
     args = parser.parse_args()
 
     args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_' + datetime.now().strftime("%Y%m%d_%H%M%S"))
+    # import shutil
+    # if os.path.isdir(os.path.join('..', 'train_logs')):
+    #     shutil.rmtree(os.path.join('..', 'train_logs'))
+
     for dataset in range(5):
         try:
             args.test_dataset = dataset
@@ -187,7 +191,7 @@ def train(args):
         tf_val_error_summary = tf.summary.scalar('val_error', tf_val_error_ph)
 
         # https://stackoverflow.com/a/40148954/2049763
-        train_writer = tf.summary.FileWriter(os.path.join(model_directory, 'train'), sess.graph)
+        train_writer = tf.summary.FileWriter(model_directory, sess.graph)
         val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
 
         # Initialize all the variables in the graph
