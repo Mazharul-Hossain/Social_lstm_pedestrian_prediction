@@ -17,7 +17,9 @@
 import argparse
 import os
 import pickle
+import sys
 import time
+import traceback
 
 import numpy as np
 import tensorflow as tf
@@ -97,14 +99,17 @@ def main(args):
 
     args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')
     for dataset in range(5):
-        args.test_dataset = dataset
+        try:
+            args.test_dataset = dataset
 
-        # https://stackoverflow.com/a/47087740/2049763
-        tf.reset_default_graph()
-        train(args)
+            # https://stackoverflow.com/a/47087740/2049763
+            tf.reset_default_graph()
+            train(args)
 
-        tf.reset_default_graph()
-        sample.sample_and_visualize(args)
+            tf.reset_default_graph()
+            sample.sample_and_visualize(args)
+        except:
+            traceback.print_exception(*sys.exc_info())
 
     # if not args.test:
     #     train(args)
@@ -306,17 +311,18 @@ def train(args):
                 best_val_loss = avg_val_loss_per_epoch
                 best_epoch = epoch
 
-            print('# (Epoch {}), Validation loss = {:.3f}, error = {:.3f}'.format(epoch + 1, avg_val_loss_per_epoch,
-                                                                                  avg_val_error_per_epoch))
+            print('# (Epoch {}/{}), Validation loss = {:.3f}, error = {:.3f}'.format(epoch + 1, args.num_epochs,
+                                                                                     avg_val_loss_per_epoch,
+                                                                                     avg_val_error_per_epoch))
             log_file_curve.write(str(avg_val_loss_per_epoch) + '\n')
 
             # Execute the summaries defined above
-            val_loss_summary, tf_val_error_summary = sess.run([tf_val_loss_summary, tf_val_error_summary],
-                                                              feed_dict={tf_val_loss_ph: avg_val_loss_per_epoch,
-                                                                         tf_val_error_ph: avg_val_error_per_epoch})
+            val_loss_summary, val_error_summary = sess.run([tf_val_loss_summary, tf_val_error_summary],
+                                                           feed_dict={tf_val_loss_ph: avg_val_loss_per_epoch,
+                                                                      tf_val_error_ph: avg_val_error_per_epoch})
 
             # Merge all summaries together
-            performance_summaries = tf.summary.merge([training_summaries, val_loss_summary, tf_val_error_summary])
+            performance_summaries = tf.summary.merge([training_summaries, val_loss_summary, val_error_summary])
             # https://stackoverflow.com/a/51784126/2049763
             performance_summaries_tensor = sess.run(performance_summaries)
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
