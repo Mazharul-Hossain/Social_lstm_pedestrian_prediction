@@ -48,12 +48,12 @@ def main(args):
     parser.add_argument('--obs_length', type=int, default=9,
                         help='Observed length of the trajectory')
     # Predicted length of the trajectory parameter
-    parser.add_argument('--pred_length', type=int, default=4,
+    parser.add_argument('--pred_length', type=int, default=5,
                         help='Predicted length of the trajectory must be less or equal to obs_length')
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=1,
+    parser.add_argument('--num_epochs', type=int, default=100,
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
