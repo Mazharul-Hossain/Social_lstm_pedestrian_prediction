@@ -97,7 +97,7 @@ def main(args):
                         help='Visualize testing result')
     args = parser.parse_args()
 
-    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_')  # + datetime.now().strftime("%Y%m%d_%H%M%S")
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')  # + datetime.now().strftime("%Y%m%d_%H%M%S")
     # import shutil
     # if os.path.isdir(os.path.join('..', 'train_logs')):
     #     shutil.rmtree(os.path.join('..', 'train_logs'))
