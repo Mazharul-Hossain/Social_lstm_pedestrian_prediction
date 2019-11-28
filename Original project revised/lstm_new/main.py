@@ -114,19 +114,24 @@ def main(args):
     #         sample.sample_and_visualize(args)
     #     except:
     #         traceback.print_exception(*sys.exc_info())
-    try:
-        if not args.test:
+
+    # Training phase
+    if not args.test:
+        try:
+            tf.reset_default_graph()
             train(args)
             args.test = True
-    except:
-        traceback.print_exception(*sys.exc_info())
+        except:
+            traceback.print_exception(*sys.exc_info())
 
-    try:
-        if args.test:
+    # testing phase
+    if args.test:
+        try:
             print("Testing is starting !")
+            tf.reset_default_graph()
             sample.sample_and_visualize(args)
-    except:
-        traceback.print_exception(*sys.exc_info())
+        except:
+            traceback.print_exception(*sys.exc_info())
 
 
 def train(args):
@@ -189,7 +194,7 @@ def train(args):
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
-        tf_val_loss_summary = tf.summary.scalar('val_loss', tf_val_loss_ph)
+        tf_val_loss_summary = tf.summary.scalar('loss', tf_val_loss_ph)
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_error_ph = tf.placeholder(tf.float32, shape=None, name='val_error_summary')
         tf_val_error_summary = tf.summary.scalar('val_error', tf_val_error_ph)

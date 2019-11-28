@@ -44,15 +44,23 @@ echo "-----------------------------------------------------"
 echo "Running New LSTM: $(date +"%r")"
 cd "../lstm_new/" || exit
 
-#for dataset in {1..5}; do
-#  #################################################
-#  echo "-----------------------------------------------------"
-#  echo "$(date + "%r")"
-#  echo "-----------------------------------------------------"
-#  python main.py -viz --test_dataset=${dataset}
-#done
+for dataset in {0..5}; do
+  #################################################
+  echo "-----------------------------------------------------"
+  echo "Training dataset: ${dataset} $(date + "%r")"
+  echo "-----------------------------------------------------"
+  python main.py --test_dataset=${dataset}
+done
 
-python main.py -test -viz_only --test_dataset=0
+for dataset in {0..5}; do
+  #################################################
+  echo "-----------------------------------------------------"
+  echo "Testing dataset: ${dataset} $(date + "%r")"
+  echo "-----------------------------------------------------"
+  python main.py -test -viz_only --test_dataset=${dataset}
+done
+
+#python main.py -test -viz_only --test_dataset=0
 echo "-----------------------------------------------------"
 
 #################################################
