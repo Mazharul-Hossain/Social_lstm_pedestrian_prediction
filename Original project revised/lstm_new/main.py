@@ -20,7 +20,6 @@ import pickle
 import sys
 import time
 import traceback
-from datetime import datetime
 
 import numpy as np
 import tensorflow as tf
@@ -43,7 +42,7 @@ def main(args):
     parser.add_argument('--model', type=str, default='lstm',
                         help='rnn, gru, or lstm')
     # Size of each batch parameter
-    parser.add_argument('--batch_size', type=int, default=16,
+    parser.add_argument('--batch_size', type=int, default=64,
                         help='minibatch size')
 
     # Length of sequence to be considered parameter
@@ -98,31 +97,36 @@ def main(args):
                         help='Visualize testing result')
     args = parser.parse_args()
 
-    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_' + datetime.now().strftime("%Y%m%d_%H%M%S"))
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_')  # + datetime.now().strftime("%Y%m%d_%H%M%S")
     # import shutil
     # if os.path.isdir(os.path.join('..', 'train_logs')):
     #     shutil.rmtree(os.path.join('..', 'train_logs'))
 
-    for dataset in range(5):
-        try:
-            args.test_dataset = dataset
-
-            # https://stackoverflow.com/a/47087740/2049763
-            tf.reset_default_graph()
-            train(args)
-
-            tf.reset_default_graph()
-            sample.sample_and_visualize(args)
-        except:
-            traceback.print_exception(*sys.exc_info())
-
-    # if not args.test:
-    #     train(args)
-    #     args.test = True
+    # for dataset in range(5):
+    #     try:
+    #         args.test_dataset = dataset
     #
-    # if args.test:
-    #     print("Testing is starting !")
-    #     sample.sample_and_visualize(args)
+    #         # https://stackoverflow.com/a/47087740/2049763
+    #         tf.reset_default_graph()
+    #         train(args)
+    #
+    #         tf.reset_default_graph()
+    #         sample.sample_and_visualize(args)
+    #     except:
+    #         traceback.print_exception(*sys.exc_info())
+    try:
+        if not args.test:
+            train(args)
+            args.test = True
+    except:
+        traceback.print_exception(*sys.exc_info())
+
+    try:
+        if args.test:
+            print("Testing is starting !")
+            sample.sample_and_visualize(args)
+    except:
+        traceback.print_exception(*sys.exc_info())
 
 
 def train(args):
@@ -337,8 +341,8 @@ def train(args):
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
             train_writer.add_summary(training_summaries_tensor, epoch)
             val_writer.add_summary(performance_summaries_tensor, epoch)
-            train_writer.flush()
-            val_writer.flush()
+            # train_writer.flush()
+            # val_writer.flush()
 
         print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
         log_file.write(str(best_epoch) + ',' + str(best_val_loss))
