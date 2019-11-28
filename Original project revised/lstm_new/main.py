@@ -191,6 +191,9 @@ def train(args):
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_output_w_ph = tf.placeholder(tf.float32, shape=None, name='output_w_summary')
         tf_output_w_summary = tf.summary.scalar('output_w', tf_output_w_ph)
+        # Whenever you need to record the loss, feed the mean loss to this placeholder
+        tf_lr_ph = tf.placeholder(tf.float32, shape=None, name='learning_rate_summary')
+        tf_lr_ph_summary = tf.summary.scalar('learning_rate', tf_lr_ph)
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
@@ -280,13 +283,15 @@ def train(args):
             log_file_curve.write(str(epoch) + ',' + str(avg_loss_per_epoch) + ',')
 
             # Execute the summaries defined above
-            training_loss_summary, embedding_w_summary, output_w_summary = sess.run(
+            training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary = sess.run(
                 [tf_loss_summary, tf_embedding_w_summary, tf_output_w_summary],
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
-                           tf_output_w_ph: output_w_summary})
+                           tf_output_w_ph: output_w_summary,
+                           tf_lr_ph_summary: learning_rate})
 
-            training_summaries = tf.summary.merge([training_loss_summary, embedding_w_summary, output_w_summary])
+            training_summaries = tf.summary.merge(
+                [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
             training_summaries_tensor = sess.run(training_summaries)
 
             # Validation
