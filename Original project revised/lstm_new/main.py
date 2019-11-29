@@ -55,7 +55,7 @@ def main(args):
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=4,
+    parser.add_argument('--num_epochs', type=int, default=64,
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
@@ -68,7 +68,7 @@ def main(args):
     parser.add_argument('--learning_rate', type=float, default=0.00003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=4,
+    parser.add_argument('--decay_rate', type=float, default=1.5,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
