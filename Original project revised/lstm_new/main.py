@@ -196,7 +196,7 @@ def train(args):
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
-        tf_val_loss_summary = tf.summary.scalar('loss', tf_val_loss_ph)
+        tf_val_loss_summary = tf.summary.scalar('val_loss', tf_val_loss_ph)
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_error_ph = tf.placeholder(tf.float32, shape=None, name='val_error_summary')
         tf_val_error_summary = tf.summary.scalar('val_error', tf_val_error_ph)
@@ -204,7 +204,7 @@ def train(args):
         # https://stackoverflow.com/a/40148954/2049763
         train_writer = tf.summary.FileWriter(model_directory, sess.graph)
         val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
-        # rest_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
+        test_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
 
         # Initialize all the variables in the graph
         sess.run(tf.global_variables_initializer())
@@ -284,15 +284,15 @@ def train(args):
             log_file_curve.write(str(epoch) + ',' + str(avg_loss_per_epoch) + ',')
 
             # Execute the summaries defined above
-            training_loss_summary, embedding_w_summary, output_w_summary = sess.run(
+            training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary = sess.run(
                 [tf_loss_summary, tf_embedding_w_summary, tf_output_w_summary],
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
-                           tf_output_w_ph: output_w_summary  # , tf_lr_ph_summary: learning_rate lr_ph_summary
-                           })
+                           tf_output_w_ph: output_w_summary,
+                           tf_lr_ph_summary: str(learning_rate).encode()})
             print("Summary session run")
             training_summaries = tf.summary.merge(
-                [training_loss_summary, embedding_w_summary, output_w_summary])
+                [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
             training_summaries_tensor = sess.run(training_summaries)
             print("Summary merged")
             # Validation
@@ -352,7 +352,7 @@ def train(args):
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
             train_writer.add_summary(training_summaries_tensor, epoch)
             val_writer.add_summary(performance_summaries_tensor, epoch)
-            # rest_writer.add_summary(training_loss_summary, learning_rate)
+            test_writer.add_summary(training_loss_summary, learning_rate)
             # train_writer.flush()
             # val_writer.flush()
 
@@ -368,7 +368,7 @@ def train(args):
         log_file_curve.close()
         train_writer.close()
         val_writer.close()
-        # rest_writer.close()
+        test_writer.close()
 
 
 if __name__ == '__main__':
