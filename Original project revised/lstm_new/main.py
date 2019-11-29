@@ -65,10 +65,10 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.00003,
+    parser.add_argument('--learning_rate', type=float, default=0.0003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=2.,
+    parser.add_argument('--decay_rate', type=float, default=1.5,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -217,7 +217,8 @@ def train(args):
         # For each epoch
         for epoch in range(args.num_epochs):
             # Assign the learning rate (decayed acc. to the epoch number)
-            learning_rate = args.learning_rate * (args.decay_rate ** epoch)
+            # learning_rate = args.learning_rate * (args.decay_rate ** epoch)
+            learning_rate = args.learning_rate * args.decay_rate
             # Reset the pointers in the data loader object
             data_loader.reset_batch_pointer()
 
@@ -283,15 +284,15 @@ def train(args):
             log_file_curve.write(str(epoch) + ',' + str(avg_loss_per_epoch) + ',')
 
             # Execute the summaries defined above
-            training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary = sess.run(
+            training_loss_summary, embedding_w_summary, output_w_summary = sess.run(
                 [tf_loss_summary, tf_embedding_w_summary, tf_output_w_summary],
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
-                           tf_output_w_ph: output_w_summary,
-                           tf_lr_ph_summary: learning_rate})
+                           tf_output_w_ph: output_w_summary  # , tf_lr_ph_summary: learning_rate lr_ph_summary
+                           })
             print("Summary session run")
             training_summaries = tf.summary.merge(
-                [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
+                [training_loss_summary, embedding_w_summary, output_w_summary])
             training_summaries_tensor = sess.run(training_summaries)
             print("Summary merged")
             # Validation
