@@ -82,13 +82,13 @@ class Model:
 
         # Define LSTM states for each pedestrian
         with tf.variable_scope("LSTM_states"):
-            self.LSTM_states = tf.zeros([args.maxNumPeds, cell.state_size], name="LSTM_states")
+            self.LSTM_states = tf.zeros([args.maxNumPeds, self.cell.state_size], name="LSTM_states")
             self.initial_states = tf.split(self.LSTM_states, args.maxNumPeds, 0)
             # https://stackoverflow.com/a/41384913/2049763
 
         # Define hidden output states for each pedestrian
         with tf.variable_scope("Hidden_states"):
-            self.output_states = tf.split(tf.zeros([args.maxNumPeds, cell.output_size]), args.maxNumPeds, 0)
+            self.output_states = tf.split(tf.zeros([args.maxNumPeds, self.cell.output_size]), args.maxNumPeds, 0)
 
         # List of tensors each of shape args.maxNumPeds x 3 corresponding to each frame in the sequence
         with tf.name_scope("frame_data_tensors"):
@@ -136,8 +136,8 @@ class Model:
                 with tf.variable_scope("LSTM") as scope:
                     if seq > 0 or ped > 0:
                         scope.reuse_variables()
-                    self.output_states[ped], self.initial_states[ped] = cell(embedded_spatial_input,
-                                                                             self.initial_states[ped])
+                    self.output_states[ped], self.initial_states[ped] = self.cell(embedded_spatial_input,
+                                                                                  self.initial_states[ped])
 
                 # Apply the linear layer. Output would be a tensor of shape 1 x output_size
                 with tf.name_scope("output_linear_layer"):

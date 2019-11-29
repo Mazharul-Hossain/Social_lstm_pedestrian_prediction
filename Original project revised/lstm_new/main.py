@@ -50,7 +50,7 @@ def main(args):
     parser.add_argument('--obs_length', type=int, default=9,
                         help='Observed length of the trajectory')
     # Predicted length of the trajectory parameter
-    parser.add_argument('--pred_length', type=int, default=5,
+    parser.add_argument('--pred_length', type=int, default=1,
                         help='Predicted length of the trajectory must be less or equal to obs_length')
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
@@ -65,10 +65,10 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.00003,
+    parser.add_argument('--learning_rate', type=float, default=0.005,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=1.5,
+    parser.add_argument('--decay_rate', type=float, default=0.95,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -273,7 +273,7 @@ def train(args):
             vars = tf.trainable_variables()
             # vars_vals = sess.run(vars)
             for var, val in zip(vars, gradients):
-                # print("var: {}, value: {}".format(var.name, np.sum(val)))
+                print("var: {}, value: {}".format(var.name, np.sum(np.absolute(val))))
                 if 'embedding_w' in var.name:
                     embedding_w_summary = np.sum(np.absolute(val))
                 elif 'output_w' in var.name:
