@@ -11,7 +11,7 @@
 # tensorboard --logdir="/home/mazhar/workplace/Social_lstm_pedestrian_prediction/Original project revised/train_logs/"
 
 echo "-----------------------------------------------------"
-echo "Date: $(date)                     Host:$(hostname)"
+echo "Date: $(date)         Host:$(hostname)"
 echo "-----------------------------------------------------"
 
 eval "$(conda shell.bash hook)"
@@ -44,22 +44,30 @@ echo "-----------------------------------------------------"
 echo "Running New LSTM: $(date +"%r")"
 cd "../lstm_new/" || exit
 
-for dataset in {0..5}; do
-  #################################################
-  echo "-----------------------------------------------------"
-  echo "Training dataset: ${dataset} $(date + "%r")"
-  echo "-----------------------------------------------------"
-  python main.py --test_dataset=${dataset}
-done
-
-for dataset in {0..5}; do
-  #################################################
-  echo "-----------------------------------------------------"
-  echo "Testing dataset: ${dataset} $(date + "%r")"
-  echo "-----------------------------------------------------"
-  python main.py -test -viz_only --test_dataset=${dataset}
-done
-
+#for NUM_TRAIN_STEPS in 0 1 2 3 4; do
+#  #################################################
+#  echo "-----------------------------------------------------"
+#  echo "Training dataset: ${NUM_TRAIN_STEPS} $(date)"
+#  echo "-----------------------------------------------------"
+#  python main.py --test_dataset=${NUM_TRAIN_STEPS}
+#done
+#
+#for NUM_TRAIN_STEPS in 0 1 2 3 4; do
+#  #################################################
+#  echo "-----------------------------------------------------"
+#  echo "Training dataset: ${NUM_TRAIN_STEPS} $(date)"
+#  echo "-----------------------------------------------------"
+#  python main.py -test --test_dataset=${NUM_TRAIN_STEPS}
+#done
+#
+#for NUM_TRAIN_STEPS in 0 1 2 3 4; do
+#  #################################################
+#  echo "-----------------------------------------------------"
+#  echo "Testing dataset: ${NUM_TRAIN_STEPS} $(date)"
+#  echo "-----------------------------------------------------"
+#  python main.py -test -viz_only --test_dataset=${NUM_TRAIN_STEPS}
+#done
+python main.py --test_dataset=0
 #python main.py -test -viz_only --test_dataset=0
 echo "-----------------------------------------------------"
 

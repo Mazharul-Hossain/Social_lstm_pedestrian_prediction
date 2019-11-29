@@ -65,10 +65,10 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.003,
+    parser.add_argument('--learning_rate', type=float, default=0.00003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=0.95,
+    parser.add_argument('--decay_rate', type=float, default=2.,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -120,7 +120,6 @@ def main(args):
         try:
             tf.reset_default_graph()
             train(args)
-            args.test = True
         except:
             traceback.print_exception(*sys.exc_info())
 
@@ -205,6 +204,7 @@ def train(args):
         # https://stackoverflow.com/a/40148954/2049763
         train_writer = tf.summary.FileWriter(model_directory, sess.graph)
         val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
+        rest_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
 
         # Initialize all the variables in the graph
         sess.run(tf.global_variables_initializer())
@@ -351,6 +351,7 @@ def train(args):
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
             train_writer.add_summary(training_summaries_tensor, epoch)
             val_writer.add_summary(performance_summaries_tensor, epoch)
+            rest_writer.add_summary(training_loss_summary, learning_rate)
             # train_writer.flush()
             # val_writer.flush()
 
@@ -366,6 +367,7 @@ def train(args):
         log_file_curve.close()
         train_writer.close()
         val_writer.close()
+        rest_writer.close()
 
 
 if __name__ == '__main__':
