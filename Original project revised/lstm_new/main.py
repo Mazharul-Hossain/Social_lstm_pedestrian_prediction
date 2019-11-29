@@ -280,7 +280,8 @@ def train(args):
                     output_w_summary = np.sum(np.absolute(val))
 
             avg_loss_per_epoch = np.mean(loss_per_epoch)
-            print('# (Epoch {}/{}), Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, avg_loss_per_epoch))
+            print('# (Epoch {}/{}), Learning rate = {} Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, lr,
+                                                                                      avg_loss_per_epoch))
             log_file_curve.write(str(epoch) + ',' + str(avg_loss_per_epoch) + ',')
 
             # Execute the summaries defined above

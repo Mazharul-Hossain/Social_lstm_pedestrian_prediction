@@ -76,6 +76,7 @@ class Model:
 
         with tf.name_scope("learning_rate"):
             self.lr = self.lr * (self.args.decay_rate ** self.training_epoch)
+
         self.define_embedding_and_output_layers(args)
 
         # Define LSTM states for each pedestrian
