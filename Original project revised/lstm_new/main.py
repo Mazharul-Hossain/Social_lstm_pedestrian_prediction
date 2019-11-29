@@ -247,7 +247,8 @@ def train(args):
                     feed = {model.input_data: x_batch, model.target_data: y_batch,
                             model.keep_prob: args.keep_prob, model.lr: learning_rate}
 
-                    train_loss, gradients, _ = sess.run([model.cost, model.clipped_gradients, model.train_op], feed)
+                    train_loss, gradients, _, lr = sess.run(
+                        [model.cost, model.clipped_gradients, model.train_op, model.lr], feed)
 
                     if not np.isnan(train_loss):
                         loss_per_batch.append(train_loss)
@@ -289,7 +290,7 @@ def train(args):
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
                            tf_output_w_ph: output_w_summary,
-                           tf_lr_ph_summary: str(learning_rate).encode()})
+                           tf_lr_ph_summary: lr})
             print("Summary session run")
             training_summaries = tf.summary.merge(
                 [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
