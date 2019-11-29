@@ -204,7 +204,6 @@ def train(args):
         # https://stackoverflow.com/a/40148954/2049763
         train_writer = tf.summary.FileWriter(model_directory, sess.graph)
         val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
-        test_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
 
         # Initialize all the variables in the graph
         sess.run(tf.global_variables_initializer())
@@ -218,7 +217,6 @@ def train(args):
         for epoch in range(args.num_epochs):
             # Assign the learning rate (decayed acc. to the epoch number)
             # learning_rate = args.learning_rate * (args.decay_rate ** epoch)
-            learning_rate = args.learning_rate * args.decay_rate
             # Reset the pointers in the data loader object
             data_loader.reset_batch_pointer()
 
@@ -245,7 +243,7 @@ def train(args):
 
                     # Feed the source, target data
                     feed = {model.input_data: x_batch, model.target_data: y_batch,
-                            model.keep_prob: args.keep_prob, model.lr: learning_rate,
+                            model.keep_prob: args.keep_prob, model.lr: args.learning_rate,
                             model.training_epoch: epoch}
 
                     train_loss, gradients, _, lr = sess.run(
@@ -353,9 +351,6 @@ def train(args):
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
             train_writer.add_summary(training_summaries_tensor, epoch)
             val_writer.add_summary(performance_summaries_tensor, epoch)
-            test_writer.add_summary(training_loss_summary, learning_rate)
-            # train_writer.flush()
-            # val_writer.flush()
 
         print('Best epoch', best_epoch, 'Best validation loss', best_val_loss)
         log_file.write(str(best_epoch) + ',' + str(best_val_loss))
@@ -369,7 +364,6 @@ def train(args):
         log_file_curve.close()
         train_writer.close()
         val_writer.close()
-        test_writer.close()
 
 
 if __name__ == '__main__':
