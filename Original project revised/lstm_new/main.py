@@ -42,7 +42,7 @@ def main(args):
     parser.add_argument('--model', type=str, default='lstm',
                         help='rnn, gru, or lstm')
     # Size of each batch parameter
-    parser.add_argument('--batch_size', type=int, default=64,
+    parser.add_argument('--batch_size', type=int, default=32,
                         help='minibatch size')
 
     # Length of sequence to be considered parameter
@@ -65,7 +65,7 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.005,
+    parser.add_argument('--learning_rate', type=float, default=0.003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
     parser.add_argument('--decay_rate', type=float, default=0.95,
@@ -228,7 +228,7 @@ def train(args):
                 start = time.time()
                 # Get the source and target data of the current batch
                 # x has the source data, y has the target data
-                x, y, d = data_loader.next_batch(randomUpdate=False)
+                x, y, d = data_loader.next_batch(randomUpdate=True)
 
                 # variable to store the loss for this batch
                 loss_per_batch = []
@@ -304,7 +304,7 @@ def train(args):
                 # Get the source, target and dataset data for the next batch x, y are input and target data which are
                 # lists containing numpy arrays of size seq_length x maxNumPeds x 3 d is the list of dataset indices
                 # from which each batch is generated (used to differentiate between datasets)
-                x, y, d = data_loader.next_batch(valid=True)
+                x, y, d = data_loader.next_batch(valid=True, randomUpdate=True)
 
                 # variable to store the loss for this batch
                 val_loss_per_batch, val_error_per_batch = [], []
