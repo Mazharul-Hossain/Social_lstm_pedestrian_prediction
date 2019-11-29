@@ -289,11 +289,11 @@ def train(args):
                            tf_embedding_w_ph: embedding_w_summary,
                            tf_output_w_ph: output_w_summary,
                            tf_lr_ph_summary: learning_rate})
-
+            print("Summary session run")
             training_summaries = tf.summary.merge(
                 [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
             training_summaries_tensor = sess.run(training_summaries)
-
+            print("Summary merged")
             # Validation
             data_loader.reset_batch_pointer(valid=True)
             val_loss_per_epoch, val_error_per_epoch = [], []
