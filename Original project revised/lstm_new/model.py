@@ -39,7 +39,8 @@ class Model:
         # target data would be the same format as input_data except with one time-step ahead
         self.target_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="target_data")
         # Learning rate
-        self.lr = tf.Variable(args.learning_rate, trainable=False, name="learning_rate")
+        self.lr = tf.placeholder(tf.float32, shape=None, name="learning_rate")
+        self.training_epoch = tf.placeholder(tf.float32, shape=None, name="training_epoch")
         # keep prob
         self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
@@ -73,6 +74,8 @@ class Model:
         # Output size is the set of parameters (mu, sigma, corr)
         self.output_size = 5  # 2 mu, 2 sigma and 1 corr
 
+        with tf.name_scope("learning_rate"):
+            self.lr = self.lr * (self.args.decay_rate ** self.training_epoch)
         self.define_embedding_and_output_layers(args)
 
         # Define LSTM states for each pedestrian

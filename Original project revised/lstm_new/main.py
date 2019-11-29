@@ -65,7 +65,7 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.0003,
+    parser.add_argument('--learning_rate', type=float, default=0.00003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
     parser.add_argument('--decay_rate', type=float, default=1.5,
@@ -245,7 +245,8 @@ def train(args):
 
                     # Feed the source, target data
                     feed = {model.input_data: x_batch, model.target_data: y_batch,
-                            model.keep_prob: args.keep_prob, model.lr: learning_rate}
+                            model.keep_prob: args.keep_prob, model.lr: learning_rate,
+                            model.training_epoch: epoch}
 
                     train_loss, gradients, _, lr = sess.run(
                         [model.cost, model.clipped_gradients, model.train_op, model.lr], feed)
@@ -291,11 +292,10 @@ def train(args):
                            tf_embedding_w_ph: embedding_w_summary,
                            tf_output_w_ph: output_w_summary,
                            tf_lr_ph_summary: lr})
-            print("Summary session run")
             training_summaries = tf.summary.merge(
                 [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
             training_summaries_tensor = sess.run(training_summaries)
-            print("Summary merged")
+
             # Validation
             data_loader.reset_batch_pointer(valid=True)
             val_loss_per_epoch, val_error_per_epoch = [], []
