@@ -204,7 +204,7 @@ def train(args):
         # https://stackoverflow.com/a/40148954/2049763
         train_writer = tf.summary.FileWriter(model_directory, sess.graph)
         val_writer = tf.summary.FileWriter(os.path.join(model_directory, 'eval'))
-        rest_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
+        # rest_writer = tf.summary.FileWriter(os.path.join(model_directory, 'test'))
 
         # Initialize all the variables in the graph
         sess.run(tf.global_variables_initializer())
@@ -351,7 +351,7 @@ def train(args):
             # Write the obtained summaries to the file, so it can be displayed in the TensorBoard
             train_writer.add_summary(training_summaries_tensor, epoch)
             val_writer.add_summary(performance_summaries_tensor, epoch)
-            rest_writer.add_summary(training_loss_summary, learning_rate)
+            # rest_writer.add_summary(training_loss_summary, learning_rate)
             # train_writer.flush()
             # val_writer.flush()
 
@@ -367,7 +367,7 @@ def train(args):
         log_file_curve.close()
         train_writer.close()
         val_writer.close()
-        rest_writer.close()
+        # rest_writer.close()
 
 
 if __name__ == '__main__':
