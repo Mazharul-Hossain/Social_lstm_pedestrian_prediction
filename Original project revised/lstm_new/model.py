@@ -40,6 +40,7 @@ class Model:
         self.target_data = tf.placeholder(tf.float32, [args.obs_length, args.maxNumPeds, 3], name="target_data")
         # Learning rate
         self.lr = tf.placeholder(tf.float32, shape=None, name="learning_rate")
+        self.final_lr = tf.placeholder(tf.float32, shape=None, name="final_learning_rate")
         self.training_epoch = tf.placeholder(tf.float32, shape=None, name="training_epoch")
         # keep prob
         self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
@@ -75,7 +76,7 @@ class Model:
         self.output_size = 5  # 2 mu, 2 sigma and 1 corr
 
         with tf.name_scope("learning_rate"):
-            self.lr = self.lr * (self.args.decay_rate ** self.training_epoch)
+            self.final_lr = self.lr * (self.args.decay_rate ** self.training_epoch)
 
         self.define_embedding_and_output_layers(args)
 
@@ -188,10 +189,10 @@ class Model:
 
         # initialize the optimizer with the given learning rate
         if args.optimizer == "RMSprop":
-            optimizer = tf.train.RMSPropOptimizer(self.lr)
+            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.final_lr)
         elif args.optimizer == "AdamOpt":
             # NOTE: Using RMSprop as suggested by Social LSTM instead of Adam as Graves(2013) does
-            optimizer = tf.train.AdamOptimizer(self.lr)
+            optimizer = tf.train.AdamOptimizer(self.final_lr)
 
         # How to apply gradient clipping in TensorFlow? https://stackoverflow.com/a/43486487/2049763
         #         # https://stackoverflow.com/a/40540396/2049763
@@ -206,6 +207,7 @@ class Model:
         # Train operator
         self.train_op = optimizer.apply_gradients(zip(self.clipped_gradients, tvars))
         # self.train_op = optimizer.apply_gradients(self.clipped_gradients, var_list=tvars)
+        self.final_lr = optimizer.lr
 
         # Merge all summaries
         # merged_summary_op = tf.summary.merge_all()

@@ -55,7 +55,7 @@ def main(args):
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=8,
+    parser.add_argument('--num_epochs', type=int, default=4,
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
@@ -68,7 +68,7 @@ def main(args):
     parser.add_argument('--learning_rate', type=float, default=0.00003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=2,
+    parser.add_argument('--decay_rate', type=float, default=4,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -247,7 +247,7 @@ def train(args):
                             model.training_epoch: epoch}
 
                     train_loss, gradients, _, lr = sess.run(
-                        [model.cost, model.clipped_gradients, model.train_op, model.lr], feed)
+                        [model.cost, model.clipped_gradients, model.train_op, model.final_lr], feed)
 
                     if not np.isnan(train_loss):
                         loss_per_batch.append(train_loss)
