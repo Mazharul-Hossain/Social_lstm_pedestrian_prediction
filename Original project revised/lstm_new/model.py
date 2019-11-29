@@ -207,7 +207,7 @@ class Model:
         # Train operator
         self.train_op = optimizer.apply_gradients(zip(self.clipped_gradients, tvars))
         # self.train_op = optimizer.apply_gradients(self.clipped_gradients, var_list=tvars)
-        self.final_lr = optimizer.lr
+        # self.final_lr = optimizer.lr
 
         # Merge all summaries
         # merged_summary_op = tf.summary.merge_all()
