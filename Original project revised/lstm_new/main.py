@@ -285,7 +285,7 @@ def train(args):
 
             # Execute the summaries defined above
             training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary = sess.run(
-                [tf_loss_summary, tf_embedding_w_summary, tf_output_w_summary],
+                [tf_loss_summary, tf_embedding_w_summary, tf_output_w_summary, tf_lr_ph_summary],
                 feed_dict={tf_loss_ph: avg_loss_per_epoch,
                            tf_embedding_w_ph: embedding_w_summary,
                            tf_output_w_ph: output_w_summary,
