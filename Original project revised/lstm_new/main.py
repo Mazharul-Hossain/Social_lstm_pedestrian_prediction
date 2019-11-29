@@ -55,7 +55,7 @@ def main(args):
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=100,
+    parser.add_argument('--num_epochs', type=int, default=8,
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
@@ -68,7 +68,7 @@ def main(args):
     parser.add_argument('--learning_rate', type=float, default=0.00003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=1.5,
+    parser.add_argument('--decay_rate', type=float, default=2,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -195,8 +195,8 @@ def train(args):
         tf_lr_ph_summary = tf.summary.scalar('learning_rate', tf_lr_ph)
 
         # Whenever you need to record the loss, feed the mean loss to this placeholder
-        tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
-        tf_val_loss_summary = tf.summary.scalar('val_loss', tf_val_loss_ph)
+        # tf_val_loss_ph = tf.placeholder(tf.float32, shape=None, name='val_loss_summary')
+        # tf_val_loss_summary = tf.summary.scalar('val_loss', tf_val_loss_ph)
         # Whenever you need to record the loss, feed the mean loss to this placeholder
         tf_val_error_ph = tf.placeholder(tf.float32, shape=None, name='val_error_summary')
         tf_val_error_summary = tf.summary.scalar('val_error', tf_val_error_ph)
@@ -341,8 +341,8 @@ def train(args):
             log_file_curve.write(str(avg_val_loss_per_epoch) + '\n')
 
             # Execute the summaries defined above
-            val_loss_summary, val_error_summary = sess.run([tf_val_loss_summary, tf_val_error_summary],
-                                                           feed_dict={tf_val_loss_ph: avg_val_loss_per_epoch,
+            val_loss_summary, val_error_summary = sess.run([tf_loss_summary, tf_val_error_summary],
+                                                           feed_dict={tf_loss_ph: avg_val_loss_per_epoch,
                                                                       tf_val_error_ph: avg_val_error_per_epoch})
 
             # Merge all summaries together
