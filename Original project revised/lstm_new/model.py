@@ -206,6 +206,13 @@ class Model:
 
         # Train operator
         self.train_op = optimizer.apply_gradients(zip(self.clipped_gradients, tvars))
+
+        self.grad_placeholders = []
+        for var in tvars:
+            self.grad_placeholders.append(tf.placeholder(var.dtype, var.shape, name=var.name))
+        # Train operator
+        self.train_op_2 = optimizer.apply_gradients(zip(self.grad_placeholders, tvars))
+
         # self.train_op = optimizer.apply_gradients(self.clipped_gradients, var_list=tvars)
         # self.final_lr = optimizer.lr
 

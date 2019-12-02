@@ -221,7 +221,6 @@ def train(args):
             data_loader.reset_batch_pointer()
 
             loss_per_epoch = []
-            gradients = {}
             total_steps = args.num_epochs * data_loader.num_batches
             # For each batch in this epoch
             for batch in range(data_loader.num_batches):
@@ -233,6 +232,7 @@ def train(args):
 
                 # variable to store the loss for this batch
                 loss_per_batch = []
+                gradients = {}
 
                 # For each sequence in the batch
                 for sequence in range(data_loader.batch_size):
@@ -253,7 +253,7 @@ def train(args):
                     vars = tf.trainable_variables()
                     # vars_vals = sess.run(vars)
                     for var, val in zip(vars, gradient):
-                        print(var, np.shape(val))
+                        print(var.name, np.shape(val))
                         if var.name in gradients:
                             gradients[var.name].append(val)
                         else:
@@ -280,14 +280,19 @@ def train(args):
                     print("model saved to {}".format(checkpoint_path))
                 # break
 
-            # vars_vals = sess.run(vars)
-            for var, val in gradients.items():
-                val = np.sum(np.absolute(val))
-                print("var: {}, value: {}".format(var, val))
-                if 'embedding_w' in var:
-                    embedding_w_summary = val
-                elif 'output_w' in var:
-                    output_w_summary = val
+                # vars_vals = sess.run(vars)
+                feed, grad_ph_key = {}, 0
+                for var, val_ in gradients.items():
+                    val = np.mean(val_, axis=0)
+                    feed[model.grad_placeholders[grad_ph_key]] = val
+
+                    print(var, np.shape(val_), np.shape(val))
+                    val = np.sum(np.absolute(val))
+                    print("var: {}, value: {}".format(var, val))
+                    if 'embedding_w' in var:
+                        embedding_w_summary = val
+                    elif 'output_w' in var:
+                        output_w_summary = val
 
             avg_loss_per_epoch = np.mean(loss_per_epoch)
             print('# (Epoch {}/{}), Learning rate = {} Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, lr,
