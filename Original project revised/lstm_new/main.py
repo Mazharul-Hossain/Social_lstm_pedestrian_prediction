@@ -253,7 +253,7 @@ def train(args):
                     vars = tf.trainable_variables()
                     # vars_vals = sess.run(vars)
                     for var, val in zip(vars, gradient):
-                        print(np.shape(val))
+                        print(var, np.shape(val))
                         if var.name in gradients:
                             gradients[var.name].append(val)
                         else:
