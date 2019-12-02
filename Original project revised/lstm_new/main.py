@@ -284,7 +284,8 @@ def train(args):
 
                 # ######## **** Mini batch optimization starts **** ########
                 # vars_vals = sess.run(vars)
-                feed, grad_ph_key = {}, 0
+                feed, grad_ph_key = {model.lr: args.learning_rate,
+                                     model.training_epoch: epoch}, 0
                 for var, val_ in gradients.items():
                     val = np.mean(val_, axis=0)
                     feed[model.grad_placeholders[grad_ph_key]] = val
