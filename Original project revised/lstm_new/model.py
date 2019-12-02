@@ -209,7 +209,7 @@ class Model:
 
         self.grad_placeholders = []
         for var in tvars:
-            self.grad_placeholders.append(tf.placeholder(var.dtype, var.shape, name=var.name))
+            self.grad_placeholders.append(tf.placeholder(var.dtype, var.shape))
         # Train operator
         self.train_op_2 = optimizer.apply_gradients(zip(self.grad_placeholders, tvars))
 
