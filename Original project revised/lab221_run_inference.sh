@@ -68,7 +68,6 @@ for NUM_TRAIN_STEPS in 0 1 2 3 4; do
   echo "-----------------------------------------------------"
   python main.py -test -viz_only --test_dataset=${NUM_TRAIN_STEPS}
 done
-#python main.py --test_dataset=0
 #python main.py -test -viz_only --test_dataset=0
 echo "-----------------------------------------------------"
 

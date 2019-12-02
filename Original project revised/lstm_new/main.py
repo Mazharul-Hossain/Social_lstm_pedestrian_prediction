@@ -282,11 +282,13 @@ def train(args):
                     print("model saved to {}".format(checkpoint_path))
                 # break
 
+                # ######## **** Mini batch optimization starts **** ########
                 # vars_vals = sess.run(vars)
                 feed, grad_ph_key = {}, 0
                 for var, val_ in gradients.items():
                     val = np.mean(val_, axis=0)
                     feed[model.grad_placeholders[grad_ph_key]] = val
+                    grad_ph_key += 1
 
                     # print(var, np.shape(val_), np.shape(val))
                     val = np.sum(np.absolute(val))
@@ -297,7 +299,8 @@ def train(args):
                         output_w_summary = val
 
                 _ = sess.run([model.train_op_2], feed)
-
+                # ######## **** Mini batch optimization ends **** ########
+            # ######## **** Training batch iteration ends **** ########
             avg_loss_per_epoch = np.mean(loss_per_epoch)
             print('# (Epoch {}/{}), Learning rate = {} Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, lr,
                                                                                       avg_loss_per_epoch))
@@ -314,7 +317,7 @@ def train(args):
                 [training_loss_summary, embedding_w_summary, output_w_summary, lr_ph_summary])
             training_summaries_tensor = sess.run(training_summaries)
 
-            # Validation
+            # ######## **** Validation starts **** ########
             data_loader.reset_batch_pointer(valid=True)
             val_loss_per_epoch, val_error_per_epoch = [], []
 
