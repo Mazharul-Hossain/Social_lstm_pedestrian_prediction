@@ -247,13 +247,15 @@ def train(args):
                             model.keep_prob: args.keep_prob, model.lr: args.learning_rate,
                             model.training_epoch: epoch}
 
-                    train_loss, gradient, _, lr = sess.run(
-                        [model.cost, model.clipped_gradients, model.train_op, model.final_lr], feed)
+                    # train_loss, gradient, _, lr = sess.run(
+                    #     [model.cost, model.clipped_gradients, model.train_op, model.final_lr], feed)
+                    train_loss, gradient, lr = sess.run(
+                        [model.cost, model.clipped_gradients, model.final_lr], feed)
 
                     vars = tf.trainable_variables()
                     # vars_vals = sess.run(vars)
                     for var, val in zip(vars, gradient):
-                        print(var.name, np.shape(val))
+                        # print(var.name, np.shape(val))
                         if var.name in gradients:
                             gradients[var.name].append(val)
                         else:
@@ -286,13 +288,15 @@ def train(args):
                     val = np.mean(val_, axis=0)
                     feed[model.grad_placeholders[grad_ph_key]] = val
 
-                    print(var, np.shape(val_), np.shape(val))
+                    # print(var, np.shape(val_), np.shape(val))
                     val = np.sum(np.absolute(val))
-                    print("var: {}, value: {}".format(var, val))
+                    # print("var: {}, value: {}".format(var, val))
                     if 'embedding_w' in var:
                         embedding_w_summary = val
                     elif 'output_w' in var:
                         output_w_summary = val
+
+                _ = sess.run([model.train_op_2], feed)
 
             avg_loss_per_epoch = np.mean(loss_per_epoch)
             print('# (Epoch {}/{}), Learning rate = {} Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, lr,
