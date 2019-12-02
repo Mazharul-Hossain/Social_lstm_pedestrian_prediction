@@ -63,6 +63,7 @@ def sample(args, save_location, model_directory):
 
     # Variable to maintain total error
     total_error = 0
+    final_displacement_error = []
 
     # For each batch
     for b in range(data_loader.num_batches):
@@ -77,6 +78,10 @@ def sample(args, save_location, model_directory):
         complete_traj = model.sample(sess, x_batch, true_traj, args.pred_length)
         total_error += model.get_mean_error(complete_traj, true_traj, args.obs_length, saved_args.maxNumPeds)
 
+        final_error = model.get_final_displacement_error(complete_traj, true_traj, saved_args.maxNumPeds)
+        if final_error is not None:
+            final_displacement_error.append(final_error)
+
         print("Processed trajectory number : ", b, "out of ", data_loader.num_batches, " trajectories")
         results.append((true_traj, complete_traj, args.obs_length))
 
@@ -85,4 +90,5 @@ def sample(args, save_location, model_directory):
         pickle.dump(results, f)
 
     # Print the mean error across all the batches
-    print("Total mean error of the model is {}".format(total_error / data_loader.num_batches))
+    print("Total mean error of the model is {:.3f}".format(total_error / data_loader.num_batches))
+    print("Total final error of the model is {:.3f}".format(np.mean(final_displacement_error)))

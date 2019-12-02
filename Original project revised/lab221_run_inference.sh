@@ -44,18 +44,19 @@ echo "-----------------------------------------------------"
 echo "Running New LSTM: $(date +"%r")"
 cd "../lstm_new/" || exit
 
-for NUM_TRAIN_STEPS in 0 1 2 3 4; do
-  #################################################
-  echo "-----------------------------------------------------"
-  echo "Training dataset: ${NUM_TRAIN_STEPS} $(date)"
-  echo "-----------------------------------------------------"
-  python main.py --test_dataset=${NUM_TRAIN_STEPS}
-done
+#for NUM_TRAIN_STEPS in 0 1 2 3 4; do
+#  #################################################
+#  echo "-----------------------------------------------------"
+#  echo "Training dataset: ${NUM_TRAIN_STEPS} $(date)"
+#  echo "-----------------------------------------------------"
+#  python main.py --test_dataset=${NUM_TRAIN_STEPS}
+#done
+python main.py --test_dataset=4
 
 for NUM_TRAIN_STEPS in 0 1 2 3 4; do
   #################################################
   echo "-----------------------------------------------------"
-  echo "Training dataset: ${NUM_TRAIN_STEPS} $(date)"
+  echo "Testing dataset: ${NUM_TRAIN_STEPS} $(date)"
   echo "-----------------------------------------------------"
   python main.py -test --pred_length=5 --test_dataset=${NUM_TRAIN_STEPS}
 done

@@ -9,6 +9,10 @@ import pathlib
 import pickle
 
 import cv2
+import matplotlib
+
+matplotlib.use('Agg')
+
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import seaborn
@@ -35,6 +39,8 @@ def plot_trajectories(true_trajs, pred_trajs, obs_length, name, save_location):
     # Initialize figure
     # https://towardsdatascience.com/matplotlib-seaborn-basics-2bd7b66dbee2
     # conda install seaborn
+    plt.ioff()
+
     seaborn.set(palette="pastel")
     fig, ax = plt.subplots(figsize=(10, 6))
     box = ax.get_position()

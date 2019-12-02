@@ -68,7 +68,7 @@ def main(args):
     parser.add_argument('--learning_rate', type=float, default=0.003,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=0.95,
+    parser.add_argument('--decay_rate', type=float, default=0.98,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -134,7 +134,7 @@ def main(args):
 
 
 def train(args):
-    datasets = list(range(4))
+    datasets = list(range(5))
     # Remove the leaveDataset from data_sets
     datasets.remove(args.test_dataset)
 
@@ -221,6 +221,7 @@ def train(args):
             data_loader.reset_batch_pointer()
 
             loss_per_epoch = []
+            gradients = {}
             total_steps = args.num_epochs * data_loader.num_batches
             # For each batch in this epoch
             for batch in range(data_loader.num_batches):
@@ -246,8 +247,17 @@ def train(args):
                             model.keep_prob: args.keep_prob, model.lr: args.learning_rate,
                             model.training_epoch: epoch}
 
-                    train_loss, gradients, _, lr = sess.run(
+                    train_loss, gradient, _, lr = sess.run(
                         [model.cost, model.clipped_gradients, model.train_op, model.final_lr], feed)
+
+                    vars = tf.trainable_variables()
+                    # vars_vals = sess.run(vars)
+                    for var, val in zip(vars, gradient):
+                        print(np.shape(val))
+                        if var.name in gradients:
+                            gradients[var.name].append(val)
+                        else:
+                            gradients[var.name] = []
 
                     if not np.isnan(train_loss):
                         loss_per_batch.append(train_loss)
@@ -270,14 +280,14 @@ def train(args):
                     print("model saved to {}".format(checkpoint_path))
                 # break
 
-            vars = tf.trainable_variables()
             # vars_vals = sess.run(vars)
-            for var, val in zip(vars, gradients):
-                print("var: {}, value: {}".format(var.name, np.sum(np.absolute(val))))
-                if 'embedding_w' in var.name:
-                    embedding_w_summary = np.sum(np.absolute(val))
-                elif 'output_w' in var.name:
-                    output_w_summary = np.sum(np.absolute(val))
+            for var, val in gradients.items():
+                val = np.sum(np.absolute(val))
+                print("var: {}, value: {}".format(var, val))
+                if 'embedding_w' in var:
+                    embedding_w_summary = val
+                elif 'output_w' in var:
+                    output_w_summary = val
 
             avg_loss_per_epoch = np.mean(loss_per_epoch)
             print('# (Epoch {}/{}), Learning rate = {} Training Loss = {:.3f}'.format(epoch + 1, args.num_epochs, lr,

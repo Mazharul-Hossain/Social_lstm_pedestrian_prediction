@@ -421,6 +421,25 @@ class Model:
         return np.mean(error)
 
     @staticmethod
+    def get_final_displacement_error(predicted_traj, true_traj, maxNumPeds):
+        # The predicted position. This will be a maxNumPeds x 3 matrix
+        pred_pos = predicted_traj[-1, :]
+        # The true position. This will be a maxNumPeds x 3 matrix
+        true_pos = true_traj[-1, :]
+        timestep_error = 0
+        counter = 0
+        for j in range(maxNumPeds):
+            if check_true_pedestrian(true_pos[j, :], pred_pos[j, :]):
+                continue
+
+            timestep_error += np.linalg.norm(true_pos[j, [1, 2]] - pred_pos[j, [1, 2]])
+            counter += 1
+
+        if counter != 0:
+            return timestep_error / counter
+        return None
+
+    @staticmethod
     def training_gaussian_2d(mux, muy, sx, sy, rho):
         """
         Function to sample a point from a given 2D normal distribution
