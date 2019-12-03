@@ -65,10 +65,10 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.05,
+    parser.add_argument('--learning_rate', type=float, default=0.004,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=0.90,
+    parser.add_argument('--decay_rate', type=float, default=0.98,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
