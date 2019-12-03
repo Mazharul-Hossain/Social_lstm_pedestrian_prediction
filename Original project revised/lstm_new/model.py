@@ -189,7 +189,7 @@ class Model:
 
         # initialize the optimizer with the given learning rate
         if args.optimizer == "RMSprop":
-            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.final_lr)
+            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.final_lr, momentum=0.9)
         elif args.optimizer == "AdamOpt":
             # NOTE: Using RMSprop as suggested by Social LSTM instead of Adam as Graves(2013) does
             optimizer = tf.train.AdamOptimizer(self.final_lr)

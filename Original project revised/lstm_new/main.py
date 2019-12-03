@@ -55,7 +55,7 @@ def main(args):
     parser.add_argument('--maxNumPeds', type=int, default=70,
                         help='Maximum number of pedestrian')
     # Number of epochs parameter
-    parser.add_argument('--num_epochs', type=int, default=64,
+    parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs')
     # Frequency at which the model should be saved parameter
     parser.add_argument('--save_every', type=int, default=400,
@@ -65,10 +65,10 @@ def main(args):
     parser.add_argument('--grad_clip', type=float, default=10.,
                         help='clip gradients at this value')
     # Learning rate parameter
-    parser.add_argument('--learning_rate', type=float, default=0.003,
+    parser.add_argument('--learning_rate', type=float, default=0.05,
                         help='learning rate')
     # Decay rate for the learning rate parameter
-    parser.add_argument('--decay_rate', type=float, default=0.98,
+    parser.add_argument('--decay_rate', type=float, default=0.90,
                         help='decay rate for rmsprop')
     # Dropout probability parameter
     parser.add_argument('--keep_prob', type=float, default=0.8,
@@ -97,7 +97,7 @@ def main(args):
                         help='Visualize testing result')
     args = parser.parse_args()
 
-    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new')  # + datetime.now().strftime("%Y%m%d_%H%M%S")
+    args.train_logs = os.path.join('..', 'train_logs', 'lstm_new_02')  # + datetime.now().strftime("%Y%m%d_%H%M%S")
     # import shutil
     # if os.path.isdir(os.path.join('..', 'train_logs')):
     #     shutil.rmtree(os.path.join('..', 'train_logs'))
