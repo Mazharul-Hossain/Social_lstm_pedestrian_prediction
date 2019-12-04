@@ -120,7 +120,8 @@ def main(args):
         try:
             tf.reset_default_graph()
             train(args)
-        except:
+        except Exception as e:
+            print('This code NOT be running because of', e)
             traceback.print_exception(*sys.exc_info())
 
     # testing phase
@@ -129,7 +130,8 @@ def main(args):
             print("Testing is starting !")
             tf.reset_default_graph()
             sample.sample_and_visualize(args)
-        except:
+        except Exception as e:
+            print('This code NOT be running because of', e)
             traceback.print_exception(*sys.exc_info())
 
 
